@@ -1,0 +1,17 @@
+From: procurement@principal12.demo
+To: quotes@gac.com
+Subject: Urgent Air Freight: Shanghai to Dubai
+
+Hi GAC Quotations,
+
+Kindly quote air shipment from Shanghai to Dubai for Demo Principal 12:
+- Mode: Air
+- Job Type: Supplier to WH Destination
+- Incoterm: FCA
+- 1 PO (PO-8812): Gross Weight 450 kg, Volume 2.8 CBM
+- Service: Consolidation
+
+Please quote our standard rate structure.
+
+Thanks,
+Coordinator 12

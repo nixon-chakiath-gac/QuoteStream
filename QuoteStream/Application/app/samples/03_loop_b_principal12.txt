@@ -1,0 +1,18 @@
+From: procurement@principal12.demo
+To: quotes@gac.com
+Subject: New shipment from Shanghai to Dubai
+
+Hi Team,
+
+Another shipment ready for Demo Principal 12:
+- Mode: Air
+- Origin: Shanghai (SHA)
+- Destination: Dubai (DXB)
+- Incoterm: FCA
+- PO-8899: 500 kg, 3.0 CBM
+- Service: Consolidation
+
+Please prepare the draft quotation.
+
+Regards,
+Coordinator 12

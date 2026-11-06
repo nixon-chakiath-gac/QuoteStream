@@ -1,0 +1,21 @@
+From: shipping@newclientlogistics.com
+To: quotes@gac.com
+Subject: Rate enquiry for ocean freight Shanghai to Dubai
+
+Hello,
+
+We are New Client Logistics and would like to request an ocean freight quote:
+- Origin: Shanghai (SHA)
+- Destination: Dubai (JEA)
+- Mode: Sea
+- Incoterm: FOB
+- 2 POs:
+  - PO-SEA-101: 1200 kg, 8.5 CBM
+  - PO-SEA-102: 1500 kg, 10.0 CBM
+- Services needed: Ocean Freight, Origin Terminal Handling, Destination Port Clearance, and On-carriage.
+
+Please note this is our first shipment with GAC.
+
+Best regards,
+Robert Vance
+New Client Logistics

@@ -1,0 +1,64 @@
+services:
+  db:
+    image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "${DB_HOST_PORT:-3307}:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  llm-gateway:
+    build: ./llm-gateway
+    environment:
+      PORT: 8080
+      DEFAULT_PROVIDER: ${DEFAULT_PROVIDER:-ollama}
+      OLLAMA_URL: ${OLLAMA_URL:-http://host.docker.internal:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.1:8b}
+      LLM_TIMEOUT_MS: ${LLM_TIMEOUT_MS:-60000}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.0-flash}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-haiku-5-5}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      DATA_DIR: /data
+      SAMPLES_DIR: /samples
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - gatewaydata:/data
+      - ./samples:/samples:ro
+    ports:
+      - "${GATEWAY_HOST_PORT:-8090}:8080"
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+      llm-gateway:
+        condition: service_started
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: ${MYSQL_DATABASE}
+      DB_USER: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+      LLM_GATEWAY_URL: http://llm-gateway:8080
+      SAMPLES_DIR: /app/samples
+    ports:
+      - "${APP_PORT:-3000}:3000"
+
+volumes:
+  dbdata:
+  gatewaydata:

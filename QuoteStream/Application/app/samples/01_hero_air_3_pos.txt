@@ -1,0 +1,27 @@
+From: logistics@principal07.demo
+To: quotes@gac.com
+Subject: Quotation Request: 3 POs from Shanghai to Dubai
+
+Dear GAC Team,
+
+Please provide a quotation for the following air freight shipment for Demo Principal 07 to Dubai branch:
+
+Origin: Shanghai (SHA)
+Destination: Dubai (DXB)
+Mode: Air
+Incoterm: FCA
+Service: Consolidation is fine
+Job Type: Supplier to WH Destination
+
+Cargo details:
+- PO-901: 200 kg, 1.4 CBM
+- PO-902: 185 kg, 1.3 CBM
+- PO-903: 200 kg, 1.5 CBM
+Total Gross Weight: 585 kg
+Total Volume: 4.2 CBM
+
+Please include origin charges, airfreight, fuel & security surcharges, export/import customs clearance, and final delivery transport.
+
+Best regards,
+Coordinator 07
+Demo Principal 07
