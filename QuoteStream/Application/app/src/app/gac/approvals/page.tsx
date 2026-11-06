@@ -181,8 +181,8 @@ export default function ApprovalsPage() {
                         <button className="btn small" onClick={() => setSendFor(i)}>
                           Send to customer
                         </button>
-                        <button className="btn secondary small" onClick={() => setJobPortal(true)}>
-                          Open in job portal
+                        <button className="btn secondary small" title="Transfer the Quote to GML" onClick={() => setJobPortal(true)}>
+                          Transfer Quote
                         </button>
                       </>
                     )}
@@ -195,8 +195,8 @@ export default function ApprovalsPage() {
                       </>
                     )}
                     {tab === 'Sent' && (
-                      <button className="btn secondary small" onClick={() => setJobPortal(true)}>
-                        Open in job portal
+                      <button className="btn secondary small" title="Transfer the Quote to GML" onClick={() => setJobPortal(true)}>
+                        Transfer Quote
                       </button>
                     )}
                   </div>
@@ -236,8 +236,8 @@ export default function ApprovalsPage() {
         />
       )}
       {jobPortal && (
-        <Dialog title="Open in job portal" onClose={() => setJobPortal(false)}>
-          <p>This is a placeholder for the hand over. Quote to Job already exists in Marlog and is not rebuilt here.</p>
+        <Dialog title="Transfer Quote" onClose={() => setJobPortal(false)}>
+          <p>This is a placeholder for the transfer to GML. Quote to Job already exists in Marlog and is not rebuilt here. Nothing is sent.</p>
           <div className="dialog-actions">
             <button className="btn" onClick={() => setJobPortal(false)}>
               Close

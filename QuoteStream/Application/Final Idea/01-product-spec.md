@@ -15,7 +15,7 @@ A quotation request system for a freight company (GAC) with two ways in:
 1. **Email door (the old way).** A customer email arrives, the AI reads it, and it becomes a request that goes to the draft quotation and the normal flow. Incomplete emails go through an Add Information dialog.
 2. **Portal door (new).** The customer opens the portal, picks a mode and fills in a form (from, to, cargo, incoterm). When all required information is in, the request is sent to GAC. The customer sees no price at this stage.
 
-Both doors create the same kind of **request**, shown on one Requests page with a Source column (`Email` or `Portal`). The GAC user prepares a draft quotation, submits, accepts and sends it (a simulated email preview with no cost or margin). A button **Open in job portal** is a hand over placeholder: Quote to Job already exists in Marlog and is not rebuilt.
+Both doors create the same kind of **request**, shown on one Requests page with a Source column (`Email` or `Portal`). The GAC user prepares a draft quotation, submits, accepts and sends it (a simulated email preview with no cost or margin). A button **Transfer Quote** (tooltip "Transfer the Quote to GML") is a hand over placeholder: Quote to Job already exists in Marlog and is not rebuilt.
 
 The customer sees the quotation in the portal. The customer cannot accept or reject. They can press **Revise or negotiate** (message plus optional target price per line). GAC replies with a new version. No limit on revisions.
 
@@ -129,7 +129,7 @@ A portal request is complete on arrival, so the draft is created in the backgrou
 - Main button **Submit**, blocked while any line says "Rate needed". Submit sets `Submitted` and opens Approvals on that quotation.
 
 ### 6.4 Approvals
-Tabs **Waiting**, **Accepted**, **Rejected**, **Sent**. Only quotations created through the new flow appear. **Accept** and **Reject** (reject needs a reason and returns the request to the GAC user to fix and Submit again). After Accept: **Send to customer** and **Open in job portal** (placeholder). Every new version goes through Submit and Accept again.
+Tabs **Waiting**, **Accepted**, **Rejected**, **Sent**. Only quotations created through the new flow appear. **Accept** and **Reject** (reject needs a reason and returns the request to the GAC user to fix and Submit again). After Accept: **Send to customer** and **Transfer Quote** (placeholder, tooltip "Transfer the Quote to GML"). Every new version goes through Submit and Accept again.
 Even though there is one GAC user, the approval step stays so the business flow (prepare, approve, send) is visible in the demo.
 
 ### 6.5 Send to customer (preview dialog)

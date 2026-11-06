@@ -47,7 +47,7 @@ Page for QT-0001 with header (request number, customer, source chip). Top banner
 Small popover after editing a line: "Why this change?" with quick chips Customer agreed new rate, This lane needs it, Wrong service, Other, an optional text line and a Save button.
 
 ### S10. GAC: Approvals
-Title "Approvals" with tabs Waiting, Accepted, Rejected, Sent. Cards or rows with quotation number, customer, lane, revenue by currency, and buttons Accept and Reject (reject opens a reason box). In Accepted: buttons "Send to customer" and "Open in job portal".
+Title "Approvals" with tabs Waiting, Accepted, Rejected, Sent. Cards or rows with quotation number, customer, lane, revenue by currency, and buttons Accept and Reject (reject opens a reason box). In Accepted: buttons "Send to customer" and "Transfer Quote" (tooltip "Transfer the Quote to GML").
 
 ### S11. GAC: Send to customer preview
 Modal "Send to customer". Fields To, Subject, a short cover note, and a clean services table with amounts per currency. No cost or margin. Buttons Send and Cancel. A revision shows "Revised quotation, version 2".

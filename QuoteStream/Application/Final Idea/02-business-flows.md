@@ -20,7 +20,7 @@ flowchart LR
     SD --> C[Customer sees quotation: Quotation ready]
     C -->|Revise or negotiate| V[New version: Revision requested]
     V --> D
-    AP -->|Open in job portal| J[Hand over to Marlog Quote to Job: placeholder]
+    AP -->|Transfer Quote| J[Transfer the Quote to GML: placeholder]
 ```
 
 ## 2. Swimlane: who does what

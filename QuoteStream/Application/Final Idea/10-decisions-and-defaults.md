@@ -15,7 +15,7 @@ Three groups. Use the defaults so you can work on your own. Log each default you
 | Customer layout | No sidebar. Request a quotation (and My requests). |
 | GAC user | One person, any business user, admin like power: can edit any field of any request or quotation. |
 | Sidebar | K+N style icon rail that expands. Only built items. |
-| Send | Simulated email preview, no cost or margin. Open in job portal is a placeholder. Quote to Job is not rebuilt. |
+| Send | Simulated email preview, no cost or margin. Transfer Quote (tooltip "Transfer the Quote to GML") is a placeholder. Quote to Job is not rebuilt. |
 | Customer actions | No accept or reject. Revise or negotiate with a message plus optional target price per line. |
 | Revisions | A new version (copy of the last sent version), status Revision requested, no limit, earlier versions stay visible. |
 | Notes | Inside the draft quotation, no separate page, no lead confirmation. A suggestion changes nothing until Accept. Every note stores its price basis. Sanity warning above 3 times. Never visible to the customer. |

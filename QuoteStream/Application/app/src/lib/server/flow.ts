@@ -433,7 +433,7 @@ export async function updateLine(quotationId: number, lineId: number, patch: Rec
     'UPDATE quotation_product_cost SET service_name = ?, basis = ?, currency = ?, quantity = ?, unit_price = ?, bill_amount = ?, est_unit_cost = ?, est_cost = ?, price_source = ?, source_ref = ?, confidence = ? WHERE id = ?',
     [serviceName, basis, currency, qty, unitPrice, c.bill, estUnit, c.cost, source, ref, confidence, lineId]
   );
-  if (priceChanged && unitPrice !== null) {
+  if (priceChanged && unitPrice !== null && line.unit_price !== null && line.unit_price > 0) {
     return { change_type: 'change_price', service_name: serviceName, basis, currency, old_value: line.unit_price, new_value: unitPrice, est_unit_cost: estUnit };
   }
   return null;
