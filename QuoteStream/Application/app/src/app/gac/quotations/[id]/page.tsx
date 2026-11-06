@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import CargoEditor, { cargoToData, dataToCargo, type CargoState } from '@/components/CargoEditor';
-import { Chip, Dialog, Field, Money, api, fmtDateTime, useData } from '@/lib/client';
+import { Chip, Dialog, FallbackTag, Field, Money, api, fmtDateTime, useData } from '@/lib/client';
 import { BASES, BASIS_LABEL, fmt, type Basis } from '@/lib/money';
 import { MODES } from '@/lib/weight';
 
@@ -302,7 +302,7 @@ export default function DraftPage() {
           </h1>
           <p className="subtitle">
             Request {d.request.number} <Chip text={d.request.source} kind={d.request.source === 'Portal' ? 'chip info plain' : 'chip plain'} /> {d.request.customer}. Next version to send: {d.quotation.next_version}
-            {d.request.ai_fallback && <span className="hint"> (email read by the fallback reader)</span>}
+            {d.request.ai_fallback && <FallbackTag reason={d.request.ai_reason} />}
           </p>
         </div>
         <div className="row">

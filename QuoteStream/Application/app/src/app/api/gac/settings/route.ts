@@ -7,7 +7,8 @@ export const dynamic = 'force-dynamic';
 export const GET = route('gac', async () => {
   try {
     const config = await gatewayCall('/config', undefined, 'GET', 15000);
-    return { available: true, config };
+    const health = await gatewayCall('/health', undefined, 'GET', 20000).catch(() => null);
+    return { available: true, config, health };
   } catch {
     return { available: false, config: null };
   }

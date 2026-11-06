@@ -2,9 +2,9 @@ import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 
-export function cacheKey(provider, model, task, input) {
+export function cacheKey(version, provider, model, task, input) {
   return createHash('sha256')
-    .update(JSON.stringify([provider, model, task, input]))
+    .update(JSON.stringify([version, provider, model, task, input]))
     .digest('hex');
 }
 

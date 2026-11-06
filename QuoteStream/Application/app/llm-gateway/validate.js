@@ -43,7 +43,10 @@ export function compact(s) {
 export function appearsIn(value, text) {
   const v = compact(value);
   if (!v) return false;
-  return compact(text).includes(v);
+  const t = compact(text);
+  if (t.includes(v)) return true;
+  const m = /^(.+?)\s*\(([A-Za-z]{3})\)$/.exec(String(value).trim());
+  return Boolean(m) && t.includes(compact(m[1])) && new RegExp(`\\b${m[2]}\\b`, 'i').test(String(text));
 }
 
 export function parseJson(text) {

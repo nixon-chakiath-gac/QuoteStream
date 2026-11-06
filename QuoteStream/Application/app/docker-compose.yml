@@ -17,16 +17,29 @@ services:
       timeout: 5s
       retries: 30
 
+  ollama:
+    image: ollama/ollama:0.12.6
+    profiles: ["ollama"]
+    environment:
+      OLLAMA_KEEP_ALIVE: 30m
+    volumes:
+      - ollamadata:/root/.ollama
+    ports:
+      - "${OLLAMA_HOST_PORT:-11434}:11434"
+
   llm-gateway:
     build: ./llm-gateway
     environment:
       PORT: 8080
-      DEFAULT_PROVIDER: ${DEFAULT_PROVIDER:-ollama}
-      OLLAMA_URL: ${OLLAMA_URL:-http://host.docker.internal:11434}
+      DEFAULT_PROVIDER: ${DEFAULT_PROVIDER:-gemini}
+      OLLAMA_URL: ${OLLAMA_URL:-http://ollama:11434}
       OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.1:8b}
       LLM_TIMEOUT_MS: ${LLM_TIMEOUT_MS:-60000}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
-      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.0-flash}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.5-flash-lite}
+      GEMINI_TIMEOUT_MS: ${GEMINI_TIMEOUT_MS:-10000}
+      GEMINI_THINKING_LEVEL: ${GEMINI_THINKING_LEVEL:-minimal}
+      GEMINI_MAX_OUTPUT_TOKENS: ${GEMINI_MAX_OUTPUT_TOKENS:-2048}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-haiku-5-5}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
@@ -62,3 +75,4 @@ services:
 volumes:
   dbdata:
   gatewaydata:
+  ollamadata:

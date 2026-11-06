@@ -2,7 +2,7 @@ import http from 'node:http';
 import { readFileSync, writeFileSync, mkdirSync, readdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { adapter, providerInfo, PROVIDER_IDS, checkHealth, ProviderError } from './providers.js';
+import { adapter, providerInfo, PROVIDER_IDS, checkHealth, ProviderError, reasonText, listGeminiModels } from './providers.js';
 import { createCache, cacheKey } from './cache.js';
 import {
   parseJson,
@@ -29,20 +29,21 @@ import * as updatePrompt from './prompts/update.js';
 import * as emailPrompt from './prompts/customer_email.js';
 
 const LOG_LIMIT = 200;
+export const PROMPT_VERSION = 'p3';
 
 export function createService(options = {}) {
   const env = options.env || process.env;
   const dataDir = env.DATA_DIR || './data';
   const samplesDir = env.SAMPLES_DIR || './samples';
   const callProvider =
-    options.callProvider || ((provider, model, system, user, hint) => adapter(provider, model, env)(system, user, hint));
+    options.callProvider || ((provider, model, system, user, hint, schema) => adapter(provider, model, env)(system, user, hint, schema));
   const cache = createCache(options.persist === false ? null : dataDir);
   const logs = [];
 
   function loadConfig() {
     const infos = providerInfo(env);
-    const wanted = env.DEFAULT_PROVIDER || 'ollama';
-    let cfg = { provider: PROVIDER_IDS.includes(wanted) ? wanted : 'ollama', model: null };
+    const wanted = env.DEFAULT_PROVIDER || 'gemini';
+    let cfg = { provider: PROVIDER_IDS.includes(wanted) ? wanted : 'gemini', model: null };
     if (options.persist !== false) {
       try {
         const saved = JSON.parse(readFileSync(join(dataDir, 'config.json'), 'utf8'));
@@ -72,55 +73,55 @@ export function createService(options = {}) {
     while (logs.length > LOG_LIMIT) logs.shift();
   }
 
+  async function askProvider(provider, model, spec, input) {
+    let user = spec.user(input);
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const reply = await callProvider(provider, model, spec.system, user, spec.hint, spec.schema);
+      const parsed = spec.parse ? spec.parse(reply) : parseJson(reply);
+      const v = spec.validate(parsed, input);
+      if (v.ok) return spec.finalize(v.value, input);
+      if (v.fatal) break;
+      const why = v.errors && v.errors.length ? v.errors.slice(0, 4).join('; ') : 'not valid JSON';
+      user = `${spec.user(input)}\n\nYour previous reply was not valid (${why}). Reply again with the JSON object only.`;
+    }
+    return null;
+  }
+
   async function runTask(task, input, spec) {
-    const { provider, model } = config;
+    const active = { ...config };
     const started = Date.now();
-    const key = cacheKey(provider, model, task, input);
-    const hit = cache.get(key);
-    const done = (result, fallbackUsed, cached, reason) => {
+    const key = cacheKey(PROMPT_VERSION, active.provider, active.model, task, input);
+    const done = (result, answered, fallbackUsed, cached, failures) => {
       const meta = {
         task,
-        provider,
-        model,
+        provider: answered ? answered.provider : 'rules',
+        model: answered ? answered.model : null,
+        active_provider: active.provider,
         duration_ms: Date.now() - started,
         success: true,
         fallback_used: fallbackUsed,
-        cached
+        cached,
+        reason: failures.length ? failures.map((f) => reasonText(f, env)).join('; ') : null,
+        reason_kind: failures.length ? failures[0].kind : null
       };
-      addLog({ ...meta, reason: reason || null });
+      addLog(meta);
       return { ...result, fallback_used: fallbackUsed, meta };
     };
-    if (hit) return done(hit.result, hit.fallback_used, true, 'cache');
+    const hit = cache.get(key);
+    if (hit && !hit.fallback_used) return done(hit.result, active, false, true, []);
 
-    let result = null;
-    let reason = null;
+    const failures = [];
     try {
-      let user = spec.user(input);
-      for (let attempt = 0; attempt < 2 && !result; attempt++) {
-        const reply = await callProvider(provider, model, spec.system, user, spec.hint);
-        const parsed = spec.parse ? spec.parse(reply) : parseJson(reply);
-        const v = spec.validate(parsed, input);
-        if (v.ok) {
-          result = spec.finalize(v.value, input);
-        } else {
-          reason = 'invalid';
-          if (v.fatal) break;
-          const why = v.errors && v.errors.length ? v.errors.slice(0, 4).join('; ') : 'not valid JSON';
-          user = `${spec.user(input)}\n\nYour previous reply was not valid (${why}). Reply again with the JSON object only.`;
-        }
+      const result = await askProvider(active.provider, active.model, spec, input);
+      if (result) {
+        cache.set(key, { result, fallback_used: false });
+        return done(result, active, false, false, failures);
       }
+      failures.push({ provider: active.provider, kind: 'invalid' });
     } catch (e) {
-      reason = e instanceof ProviderError && e.kind ? e.kind : 'error';
+      failures.push({ provider: active.provider, kind: e instanceof ProviderError && e.kind ? e.kind : 'error', status: e && e.status, detail: e && e.detail });
     }
-    let fallbackUsed = false;
-    if (!result) {
-      result = spec.fallback(input);
-      fallbackUsed = true;
-    } else {
-      reason = null;
-    }
-    cache.set(key, { result, fallback_used: fallbackUsed });
-    return done(result, fallbackUsed, false, reason);
+    return done(spec.fallback(input), null, true, false, failures);
   }
 
   function extractText(input) {
@@ -131,16 +132,19 @@ export function createService(options = {}) {
     extract: {
       system: extractPrompt.system,
       hint: extractPrompt.schemaHint,
+      schema: extractPrompt.jsonSchema,
       user: extractPrompt.user,
       validate: (raw) => validateExtract(raw),
       finalize: (value, input) => {
         const address = parseAddress(input.from);
         const guarded = applyExtractGuard(value, { text: extractText(input), fromAddress: address });
         const fb = extractFallback(input);
+        if (guarded.customer && /^[^\s@]*@?[\w-]+(\.[\w-]+)+$/.test(guarded.customer)) guarded.customer = null;
         for (const f of ['customer', 'contact_name', 'mode', 'origin', 'destination']) {
           if (!guarded[f]) guarded[f] = fb[f];
         }
         if (fb.mode && guarded.mode !== fb.mode) guarded.mode = fb.mode;
+        for (const f of ['load_type', 'container_type', 'container_count', 'vehicle_type']) guarded[f] = fb[f];
         guarded.missing = computeMissing(guarded);
         return guarded;
       },
@@ -223,6 +227,13 @@ export function createService(options = {}) {
       saveConfig({ provider: body.provider, model });
       return { status: 200, json: { provider: config.provider, model: config.model } };
     }
+    if (method === 'GET' && path === '/models') {
+      try {
+        return { status: 200, json: { models: await listGeminiModels(env) } };
+      } catch (e) {
+        return { status: 502, json: { error: e instanceof ProviderError ? e.message : 'Could not list models' } };
+      }
+    }
     if (method === 'GET' && path === '/logs') {
       return { status: 200, json: { logs: [...logs].reverse() } };
     }
@@ -254,7 +265,16 @@ export function createService(options = {}) {
       for (const f of files) {
         const input = parseEmailFile(readFileSync(join(samplesDir, f), 'utf8'));
         const r = await runTask('extract', input, specs.extract);
-        samples.push({ file: f, ok: r.meta.success, fallback_used: r.fallback_used, cached: r.meta.cached });
+        samples.push({
+          file: f,
+          ok: r.meta.success,
+          provider: r.meta.provider,
+          model: r.meta.model,
+          duration_ms: r.meta.duration_ms,
+          fallback_used: r.fallback_used,
+          cached: r.meta.cached,
+          reason: r.meta.reason
+        });
       }
       return { status: 200, json: { samples } };
     }

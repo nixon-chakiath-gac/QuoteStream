@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Field, api, useData } from '@/lib/client';
+import { AiStatusBanner, Field, api, useData } from '@/lib/client';
 
 export default function SettingsPage() {
   const { data, reload } = useData<any>('/api/gac/settings');
@@ -36,6 +36,7 @@ export default function SettingsPage() {
   return (
     <div>
       <h1>Settings</h1>
+      <AiStatusBanner key={result?.text ?? ''} />
       <p className="subtitle">Choose which AI provider reads emails and writes cover notes. The change applies at once, no restart needed.</p>
       <div className="card" style={{ maxWidth: 640 }}>
         <h2>AI provider</h2>

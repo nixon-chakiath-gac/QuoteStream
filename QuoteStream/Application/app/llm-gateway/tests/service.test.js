@@ -72,15 +72,21 @@ test('cache hit does not call the provider again and keeps the flag', async () =
   assert.equal(json.fallback_used, false);
 });
 
-test('provider down uses fallback and caches the flag', async () => {
+test('provider down uses fallback, says why, and does not cache it', async () => {
   mode = 'down';
   const a = await post('/extract', samples['01']);
   assert.equal(a.json.fallback_used, true);
   assert.equal(a.json.total_weight_kg, 585);
+  assert.equal(a.json.meta.provider, 'rules');
+  assert.equal(a.json.meta.reason, 'Gemini unavailable');
   const b = await post('/extract', samples['01']);
-  assert.equal(b.json.meta.cached, true);
-  assert.equal(b.json.fallback_used, true);
+  assert.equal(b.json.meta.cached, false);
   mode = 'good';
+  const before = calls;
+  const c = await post('/extract', samples['01']);
+  assert.equal(calls - before, 1);
+  assert.equal(c.json.fallback_used, false);
+  assert.equal(c.json.meta.provider, 'gemini');
 });
 
 test('invalid twice falls back after one retry', async () => {
