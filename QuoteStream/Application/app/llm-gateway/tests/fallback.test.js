@@ -99,3 +99,62 @@ test('stated total wins over PO sum with a note', () => {
   assert.equal(r.total_weight_kg, 250);
   assert.match(r.notes, /differs/);
 });
+
+test('sample 06 courier Blue Dune', () => {
+  const r = extractFallback(s['06']);
+  assert.equal(r.customer, 'Blue Dune Energy');
+  assert.equal(r.contact_name, 'Maya Hart');
+  assert.equal(r.contact_email, 'procurement@bluedune.demo');
+  assert.equal(r.mode, 'Courier');
+  assert.equal(r.origin, 'Dubai (DXB)');
+  assert.equal(r.destination, 'Singapore (SIN)');
+  assert.equal(r.incoterm, 'DAP');
+  assert.equal(r.total_weight_kg, 30);
+  assert.equal(r.total_volume_cbm, 0.4);
+  assert.deepEqual(r.pos, []);
+  assert.deepEqual(r.missing, []);
+});
+
+test('sample 07 land', () => {
+  const r = extractFallback(s['07']);
+  assert.equal(r.customer, 'Oasis Build Supplies');
+  assert.equal(r.mode, 'Land');
+  assert.equal(r.origin, 'Dubai (DXB)');
+  assert.equal(r.destination, 'Riyadh (RUH)');
+  assert.equal(r.incoterm, 'DAP');
+  assert.equal(r.vehicle_type, 'FTL');
+  assert.equal(r.total_weight_kg, 8000);
+  assert.equal(r.total_volume_cbm, 20);
+  assert.deepEqual(r.missing, []);
+});
+
+test('sample 08 sea FCL with containers', () => {
+  const r = extractFallback(s['08']);
+  assert.equal(r.customer, 'Harbor Light Foods');
+  assert.equal(r.mode, 'Sea');
+  assert.equal(r.origin, 'Ningbo (NGB)');
+  assert.equal(r.destination, 'Jebel Ali (JEA)');
+  assert.equal(r.incoterm, 'FOB');
+  assert.equal(r.load_type, 'FCL');
+  assert.equal(r.container_type, '40 ft standard');
+  assert.equal(r.container_count, 2);
+  assert.equal(r.total_weight_kg, 18000);
+  assert.equal(r.total_volume_cbm, 60);
+  assert.deepEqual(r.missing, []);
+});
+
+test('sample 09 missing only the weight', () => {
+  const r = extractFallback(s['09']);
+  assert.equal(r.customer, 'Cedar Point Medical');
+  assert.equal(r.mode, 'Air');
+  assert.equal(r.origin, 'Hong Kong (HKG)');
+  assert.equal(r.destination, 'Dubai (DXB)');
+  assert.equal(r.incoterm, 'FCA');
+  assert.equal(r.total_weight_kg, null);
+  assert.equal(r.total_volume_cbm, 1.2);
+  assert.deepEqual(r.missing, ['total_weight']);
+});
+
+test('samples have no long dashes', () => {
+  for (const [k, v] of Object.entries(s)) assert.ok(!new RegExp(`[${String.fromCharCode(0x2013, 0x2014)}]`).test(JSON.stringify(v)), k);
+});

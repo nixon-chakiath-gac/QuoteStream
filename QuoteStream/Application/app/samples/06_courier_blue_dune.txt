@@ -1,0 +1,19 @@
+From: procurement@bluedune.demo
+To: quotes@gac.com
+Subject: Courier quote: 2 boxes from Dubai to Singapore
+
+Hello GAC Team,
+
+Please quote a courier shipment for Blue Dune Energy:
+
+- Mode: Courier
+- Origin: Dubai (DXB)
+- Destination: Singapore (SIN)
+- Incoterm: DAP
+- Cargo: 2 boxes of pump spare parts
+- Total Gross Weight: 30 kg
+- Total Volume: 0.4 CBM
+
+Best regards,
+Maya Hart
+Blue Dune Energy

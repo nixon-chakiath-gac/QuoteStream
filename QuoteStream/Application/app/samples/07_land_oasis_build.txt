@@ -1,0 +1,20 @@
+From: transport@oasisbuild.demo
+To: quotes@gac.com
+Subject: Road freight request from Dubai to Riyadh
+
+Dear GAC,
+
+We are Oasis Build Supplies and need a road freight quotation:
+
+- Mode: Land
+- Origin: Dubai (DXB)
+- Destination: Riyadh (RUH)
+- Incoterm: DAP
+- Vehicle Type: FTL
+- Cargo: tiles and fittings on 12 pallets
+- Total Gross Weight: 8000 kg
+- Total Volume: 20 CBM
+
+Kind regards,
+Omar Saleh
+Oasis Build Supplies

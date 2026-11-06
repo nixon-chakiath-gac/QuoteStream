@@ -1,9 +1,9 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import AddInfoDialog from '@/components/AddInfoDialog';
-import { Chip, fmtDateTime, useData } from '@/lib/client';
+import { Chip, FallbackTag, fmtDateTime, useData } from '@/lib/client';
 
 const FILTERS: { label: string; match: (s: string) => boolean }[] = [
   { label: 'All', match: () => true },
@@ -19,6 +19,22 @@ export default function RequestsPage() {
   const { data, loading, error, reload } = useData<any[]>('/api/gac/requests', 3000);
   const [filter, setFilter] = useState('All');
   const [info, setInfo] = useState<any | null>(null);
+  const [focus, setFocus] = useState<number | null>(null);
+  const scrolled = useRef(false);
+
+  useEffect(() => {
+    const f = Number(new URLSearchParams(window.location.search).get('focus'));
+    if (f) setFocus(f);
+  }, []);
+
+  useEffect(() => {
+    if (!focus || scrolled.current || !data) return;
+    const el = document.getElementById(`req-${focus}`);
+    if (el) {
+      el.scrollIntoView({ block: 'center' });
+      scrolled.current = true;
+    }
+  }, [focus, data]);
   const rows = (data ?? []).filter((r) => FILTERS.find((f) => f.label === filter)!.match(r.status));
 
   function act(r: any) {
@@ -54,7 +70,7 @@ export default function RequestsPage() {
           </thead>
           <tbody>
             {rows.map((r) => (
-              <tr key={r.id} className="click" onClick={() => router.push(`/gac/requests/${r.id}`)}>
+              <tr key={r.id} id={`req-${r.id}`} className={`click${r.id === focus ? ' focus' : ''}`} onClick={() => router.push(`/gac/requests/${r.id}`)}>
                 <td>
                   {fmtDateTime(r.created_at)}
                   <div className="hint">{r.number}</div>
@@ -74,11 +90,7 @@ export default function RequestsPage() {
                   ) : (
                     <Chip text={r.status} />
                   )}
-                  {r.ai_fallback && (
-                    <span className="hint" title="The rule based reader was used" style={{ marginLeft: 6 }}>
-                      fallback used
-                    </span>
-                  )}
+                  {r.ai_fallback && <FallbackTag reason={r.ai_reason} />}
                 </td>
                 <td>{r.missing.length > 0 ? r.missing.join(', ') : ''}</td>
                 <td onClick={(e) => e.stopPropagation()}>

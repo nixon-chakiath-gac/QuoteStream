@@ -1,0 +1,21 @@
+From: imports@harborlight.demo
+To: quotes@gac.com
+Subject: FCL quote from Ningbo to Jebel Ali
+
+Hi GAC Quotations,
+
+Please quote a full container load for Harbor Light Foods:
+
+- Mode: Sea
+- Load Type: FCL
+- Container Type: 40 ft standard
+- Container Count: 2
+- Origin: Ningbo (NGB)
+- Destination: Jebel Ali (JEA)
+- Incoterm: FOB
+- Total Gross Weight: 18000 kg
+- Total Volume: 60 CBM
+
+Thanks,
+Lena Brooks
+Harbor Light Foods

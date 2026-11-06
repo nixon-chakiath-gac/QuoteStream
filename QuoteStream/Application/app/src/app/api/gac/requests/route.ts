@@ -31,6 +31,7 @@ export const GET = route('gac', async (req) => {
       action: actionFor(r.status),
       quotation_id: r.quotation_id,
       ai_fallback: Boolean(r.ai_fallback),
+      ai_reason: r.ai_meta?.reason ?? null,
       error_text: r.error_text,
       subject: r.email_json?.subject ?? null
     });

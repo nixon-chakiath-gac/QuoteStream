@@ -1,0 +1,19 @@
+From: shipping@cedarpoint.demo
+To: quotes@gac.com
+Subject: Air freight from Hong Kong to Dubai
+
+Hello,
+
+Please quote an air shipment of medical supplies for Cedar Point Medical:
+
+- Mode: Air
+- Origin: Hong Kong (HKG)
+- Destination: Dubai (DXB)
+- Incoterm: FCA
+- Total Volume: 1.2 CBM
+
+We will confirm the weight once the cartons are packed.
+
+Regards,
+Nina Park
+Cedar Point Medical

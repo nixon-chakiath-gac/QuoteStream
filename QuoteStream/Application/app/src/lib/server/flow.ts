@@ -23,7 +23,7 @@ import { gatewayCall } from './gateway';
 import { customerPrincipalId } from './auth';
 
 export function noDash(s: string): string {
-  return s.replace(/\s*[–—]\s*/g, ', ');
+  return s.replace(new RegExp(`\\s*[${String.fromCharCode(0x2013, 0x2014)}]\\s*`, 'g'), ', ');
 }
 
 export async function addEvent(requestId: number, type: string, text: string) {
@@ -140,7 +140,7 @@ export async function createEmailRequest(email: { from: string; to: string; subj
 }
 
 function applyExtract(data: ReqData, x: Record<string, any>) {
-  const keys = ['customer', 'contact_name', 'contact_email', 'mode', 'origin', 'destination', 'incoterm', 'job_type', 'service', 'pos', 'total_weight_kg', 'total_volume_cbm', 'requested_services', 'notes'];
+  const keys = ['customer', 'contact_name', 'contact_email', 'mode', 'origin', 'destination', 'incoterm', 'job_type', 'service', 'pos', 'total_weight_kg', 'total_volume_cbm', 'requested_services', 'notes', 'load_type', 'container_type', 'container_count', 'vehicle_type'];
   for (const k of keys) if (x[k] !== undefined) data[k] = x[k];
   if (!Array.isArray(data.pos)) data.pos = [];
   if (!Array.isArray(data.requested_services)) data.requested_services = [];
@@ -175,10 +175,36 @@ async function finishIntake(requestId: number, data: ReqData, fallback: boolean)
   );
   if (missing.length > 0) {
     await addEvent(requestId, 'read', `Email read. Missing information: ${missingLabels(missing).join(', ')}`);
+    await writeClarification(requestId, data, missing);
     return null;
   }
   await addEvent(requestId, 'read', 'Email read. All required information found');
   return createDraft(requestId);
+}
+
+async function writeClarification(requestId: number, data: ReqData, missing: FieldKey[]) {
+  const req = await q1<any>('SELECT number, email_json FROM request WHERE id = ?', [requestId]);
+  const email = req?.email_json ?? {};
+  const to = String(email.from ?? data.contact_email ?? '').trim();
+  if (!req || !to) return;
+  const body = [
+    `Dear ${data.contact_name || data.customer || 'customer'},`,
+    '',
+    `Thank you for your email. To prepare the quotation for request ${req.number} we still need:`,
+    '',
+    ...missingLabels(missing).map((l) => `- ${l}`),
+    '',
+    'Please reply to this email with these details.',
+    '',
+    'Kind regards,',
+    'GAC Quotations'
+  ].join('\n');
+  await exec("INSERT INTO outgoing_email (kind, request_id, to_email, subject, body) VALUES ('clarification',?,?,?,?)", [
+    requestId,
+    to,
+    noDash(`Re: ${email.subject || 'Your quotation request'}`),
+    noDash(body)
+  ]);
 }
 
 export async function processEmail(requestId: number) {
@@ -189,9 +215,16 @@ export async function processEmail(requestId: number) {
   try {
     const x = await gatewayCall('/extract', req.email_json);
     fallback = Boolean(x.fallback_used);
+    const m = x.meta ?? {};
+    await exec('UPDATE request SET ai_meta = ? WHERE id = ?', [JSON.stringify({ provider: m.provider ?? null, model: m.model ?? null, duration_ms: m.duration_ms ?? null, cached: Boolean(m.cached), reason: m.reason ?? null }), requestId]);
     applyExtract(data, x);
   } catch {
-    await exec('UPDATE request SET error_text = ? WHERE id = ?', ['The AI service could not be reached', requestId]);
+    await exec('UPDATE request SET error_text = ?, ai_meta = ? WHERE id = ?', [
+      'The AI service could not be reached',
+      JSON.stringify({ provider: 'rules', model: null, duration_ms: null, cached: false, reason: 'AI service unreachable' }),
+      requestId
+    ]);
+    fallback = true;
     data.contact_email = req.email_json?.from ?? null;
   }
   await finishIntake(requestId, data, fallback);
@@ -224,6 +257,7 @@ export async function addInformation(requestId: number, text: string) {
     unclear: (result.unclear ?? []) as string[],
     still_missing: missingLabels(stillMissing),
     complete: stillMissing.length === 0,
+    status: stillMissing.length === 0 ? 'Draft ready' : 'Missing information',
     quotation_id: qid
   };
 }
@@ -292,6 +326,7 @@ export async function loadDraft(quotationId: number, opts: { includeTest?: boole
       data: req.data,
       email: req.email_json,
       ai_fallback: Boolean(req.ai_fallback),
+      ai_reason: req.ai_meta?.reason ?? null,
       lane: await laneLabel(qt.origin_port_id, qt.destination_port_id, req.lane_text)
     },
     cargo,
@@ -631,7 +666,7 @@ GAC Quotations`);
     email: { subject: finalSubject, body: finalBody, to: principal.email }
   };
   await exec('INSERT INTO quotation_version (quotation_id, request_id, version_no, snapshot, sent_at) VALUES (?,?,?,?,UTC_TIMESTAMP())', [quotationId, qt.request_id, version, JSON.stringify(snapshot)]);
-  await exec('INSERT INTO outgoing_email (quotation_id, version_no, to_email, subject, body, fallback_used) VALUES (?,?,?,?,?,?)', [quotationId, version, principal.email, finalSubject, finalBody, body.trim() ? 0 : 1]);
+  await exec("INSERT INTO outgoing_email (kind, request_id, quotation_id, version_no, to_email, subject, body, fallback_used) VALUES ('quotation',?,?,?,?,?,?,?)", [qt.request_id, quotationId, version, principal.email, finalSubject, finalBody, body.trim() ? 0 : 1]);
   await exec("UPDATE quotation SET flow_status = 'Sent', valid_until = ? WHERE id = ?", [preview.valid_until, quotationId]);
   await exec("UPDATE request SET status = 'Sent to customer', sent_at = UTC_TIMESTAMP() WHERE id = ?", [qt.request_id]);
   await exec("UPDATE revision_request SET status = 'answered' WHERE request_id = ? AND status = 'open'", [qt.request_id]);

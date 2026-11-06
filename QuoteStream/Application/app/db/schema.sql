@@ -85,6 +85,7 @@ CREATE TABLE request (
   sent_at DATETIME NULL,
   ai_fallback TINYINT NOT NULL DEFAULT 0,
   error_text VARCHAR(255) NULL,
+  ai_meta JSON NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
@@ -199,8 +200,10 @@ CREATE TABLE quotation_version (
 );
 CREATE TABLE outgoing_email (
   id INT PRIMARY KEY AUTO_INCREMENT,
-  quotation_id INT NOT NULL,
-  version_no INT NOT NULL,
+  kind VARCHAR(20) NOT NULL DEFAULT 'quotation',
+  request_id INT NULL,
+  quotation_id INT NULL,
+  version_no INT NULL,
   to_email VARCHAR(160) NOT NULL,
   subject VARCHAR(255) NOT NULL,
   body TEXT NOT NULL,
@@ -220,6 +223,8 @@ CREATE TABLE sample_email (
   id INT PRIMARY KEY AUTO_INCREMENT,
   file_name VARCHAR(80) NOT NULL,
   label VARCHAR(160) NOT NULL,
+  company VARCHAR(160) NOT NULL DEFAULT '',
+  expect_text VARCHAR(200) NOT NULL DEFAULT '',
   from_email VARCHAR(160) NOT NULL,
   to_email VARCHAR(160) NOT NULL,
   subject VARCHAR(255) NOT NULL,

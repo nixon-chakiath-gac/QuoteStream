@@ -1,0 +1,29 @@
+From: ops@tulipharbor.demo
+To: quotes@gac.com
+Subject: Stocklist dispatch instruction for MV Silver Gull
+
+Dear Sirs,
+
+We are the local agent for the vessel MV Silver Gull, ETA 14 November 2026 at Mersin port.
+
+Please dispatch all orders in the stocklist to the consignee below:
+
+Consignee:
+Lale Marine Supplies
+Harbour Street 12, Tuzla
+Istanbul
+Turkey
+
+Destination airport should be IST airport.
+
+Please arrange the dispatch no later than 20 November 2026.
+
+Agent contact:
+Deniz Aydin
+Tulip Harbor Agency
+Phone: +90 000 000 0000
+ops@tulipharbor.demo
+
+Best regards,
+Deniz Aydin
+Tulip Harbor Agency

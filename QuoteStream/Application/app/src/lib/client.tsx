@@ -126,3 +126,27 @@ export function MoneyList({ items }: { items: { currency: string; amount: number
     </span>
   );
 }
+
+export function FallbackTag({ reason }: { reason?: string | null }) {
+  const text = reason || 'The rule based reader answered';
+  return (
+    <span className="fallback" title={text}>
+      <span className="chip warn tag">fallback used</span>
+      <span className="hint">{text}</span>
+    </span>
+  );
+}
+
+export function AiStatusBanner() {
+  const { data } = useData<any>('/api/gac/settings');
+  if (!data) return null;
+  if (!data.available) return <div className="banner error">The AI service is not reachable. Emails are read by the rule based reader until it is back.</div>;
+  const h = data.health;
+  if (!h || h.reachable) return null;
+  const label = data.config?.providers?.find((p: any) => p.id === data.config.provider)?.label ?? data.config?.provider;
+  return (
+    <div className="banner error">
+      {label} is not ready: {h.message}. Emails fall back to the next provider or the rule based reader. Check Settings and the .env file.
+    </div>
+  );
+}

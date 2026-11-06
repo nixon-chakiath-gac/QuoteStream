@@ -133,6 +133,18 @@ function servicesSegment(body) {
   return parts.join(' ');
 }
 
+export function transportDetails(text) {
+  const load = /\b(FCL|LCL)\b/.exec(text);
+  const count = field(text, 'Container Count');
+  const n = count ? Number((/\d+/.exec(count) || [])[0]) : null;
+  return {
+    load_type: load ? load[1] : null,
+    container_type: field(text, 'Container Type'),
+    container_count: Number.isFinite(n) && n > 0 ? n : null,
+    vehicle_type: field(text, 'Vehicle Type')
+  };
+}
+
 export function extractFallback(input) {
   const from = input.from || '';
   const subject = input.subject || '';
@@ -201,6 +213,7 @@ export function extractFallback(input) {
     total_weight_kg: totalW,
     total_volume_cbm: totalV,
     requested_services: mapServices(servicesSegment(body)),
+    ...transportDetails(text),
     missing: [],
     notes: notes.join(' ')
   };

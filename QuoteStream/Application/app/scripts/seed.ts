@@ -324,14 +324,25 @@ export async function seedAll(c: Conn, samplesDir: string) {
   await noteIns(principals[6].id, 'change_price', 'Transportation', 'kg', 150, 152, null, 'Test only: basis mismatch trap', 'QT-seed-3', 1, 10);
   await noteIns(principals[6].id, 'change_price', 'Airfreight', 'kg', 3.1, 10, null, 'Test only: sanity warning', 'QT-seed-4', 1, 5);
 
+  await seedSamples(c, samplesDir);
+}
+
+const SAMPLE_META: Record<string, { label: string; company: string; expect: string }> = {
+  '01': { label: 'Complete request', company: 'Demo Principal 07', expect: 'Expect: Draft ready, USD 2,994.00 revenue' },
+  '02': { label: 'Standard rates', company: 'Demo Principal 12', expect: 'Expect: Draft ready, no Fuel Surcharge line' },
+  '03': { label: 'Repeat shipment', company: 'Demo Principal 12', expect: 'Expect: Draft ready, Notes suggest Fuel Surcharge' },
+  '04': { label: 'New customer', company: 'New Client Logistics', expect: 'Expect: Draft ready, Rate needed on every line' },
+  '05': { label: 'Missing details', company: 'Random Trading', expect: 'Expect: Missing information, incoterm, weight and volume' },
+  '06': { label: 'Courier boxes', company: 'Blue Dune Energy', expect: 'Expect: Draft ready, Rate needed on every line' },
+  '07': { label: 'Road freight', company: 'Oasis Build Supplies', expect: 'Expect: Draft ready, USD 1,267.00 revenue' },
+  '08': { label: 'Full container load', company: 'Harbor Light Foods', expect: 'Expect: Draft ready, USD 2,468.40 revenue' },
+  '09': { label: 'Missing weight', company: 'Cedar Point Medical', expect: 'Expect: Missing information, total weight only' },
+  '10': { label: 'Stocklist dispatch', company: 'Tulip Harbor Agency', expect: 'Expect: Missing information, origin, incoterm, weight and volume' }
+};
+
+export async function seedSamples(c: Conn, samplesDir: string) {
+  await c.query('DELETE FROM sample_email');
   const files = fs.existsSync(samplesDir) ? fs.readdirSync(samplesDir).filter((f) => f.endsWith('.txt')).sort() : [];
-  const labels: Record<string, string> = {
-    '01_hero_air_3_pos.txt': 'Hero: Demo Principal 07, Air, 3 POs (complete)',
-    '02_loop_a_principal12.txt': 'Notes loop A: Demo Principal 12, Air (complete)',
-    '03_loop_b_principal12.txt': 'Notes loop B: Demo Principal 12, Air (complete)',
-    '04_new_customer_sea.txt': 'New customer: New Client Logistics, Sea',
-    '05_incomplete_air.txt': 'Incomplete: Air, no incoterm or cargo'
-  };
   for (const f of files) {
     const text = fs.readFileSync(path.join(samplesDir, f), 'utf8').replace(/\r\n/g, '\n');
     const lines = text.split('\n');
@@ -343,9 +354,12 @@ export async function seedAll(c: Conn, samplesDir: string) {
       if (m) head[m[1]] = m[2];
     }
     const body = lines.slice(i + 1).join('\n').trim();
-    await ins('INSERT INTO sample_email (file_name, label, from_email, to_email, subject, body) VALUES (?,?,?,?,?,?)', [
+    const meta = SAMPLE_META[f.slice(0, 2)];
+    await c.query('INSERT INTO sample_email (file_name, label, company, expect_text, from_email, to_email, subject, body) VALUES (?,?,?,?,?,?,?,?)', [
       f,
-      labels[f] ?? f,
+      meta?.label ?? f.replace(/\.txt$/, '').replace(/^\d+_/, '').replace(/_/g, ' '),
+      meta?.company ?? '',
+      meta?.expect ?? '',
       head.From ?? '',
       head.To ?? '',
       head.Subject ?? '',
