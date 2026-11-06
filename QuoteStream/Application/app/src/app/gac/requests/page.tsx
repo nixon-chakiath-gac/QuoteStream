@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import AddInfoDialog from '@/components/AddInfoDialog';
-import { Chip, FallbackTag, fmtDateTime, useData } from '@/lib/client';
+import { Chip, FallbackTag, LaneText, ModeTag, fmtDateTime, useData } from '@/lib/client';
 
 const FILTERS: { label: string; match: (s: string) => boolean }[] = [
   { label: 'All', match: () => true },
@@ -79,8 +79,12 @@ export default function RequestsPage() {
                   <Chip text={r.source} kind={r.source === 'Portal' ? 'chip info plain' : 'chip plain'} />
                 </td>
                 <td>{r.customer}</td>
-                <td>{r.mode ?? 'Not known'}</td>
-                <td>{r.lane || 'Not known'}</td>
+                <td>
+                  <ModeTag mode={r.mode} />
+                </td>
+                <td>
+                  <LaneText lane={r.lane} empty="Not known" />
+                </td>
                 <td>
                   {r.status === 'Reading email' ? (
                     <span className="chip">

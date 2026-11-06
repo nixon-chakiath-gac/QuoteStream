@@ -150,3 +150,34 @@ export function AiStatusBanner() {
     </div>
   );
 }
+
+export const MODE_ICONS: Record<string, string> = { Air: '✈', Sea: '\u{1F6A2}', Land: '\u{1F69A}', Courier: '\u{1F4E6}', 'Hand Carry': '\u{1F9F3}', Others: '⚙' };
+
+export function ModeTag({ mode }: { mode: string | null | undefined }) {
+  if (!mode) return <span className="muted">Not known</span>;
+  return (
+    <span className="mode-tag">
+      <span className="mode-tag-icon" aria-hidden="true">
+        {MODE_ICONS[mode] ?? ''}
+      </span>
+      {mode}
+    </span>
+  );
+}
+
+function place(text: string) {
+  return text.trim().replace(/\s+\(/g, '(');
+}
+
+export function LaneText({ lane, empty }: { lane: string | null | undefined; empty: string }) {
+  if (!lane) return <span className="muted">{empty}</span>;
+  const parts = lane.split(/\s+to\s+/i);
+  if (parts.length !== 2) return <span className="lane-place">{place(lane)}</span>;
+  return (
+    <span className="lane">
+      <span className="lane-place">{place(parts[0])}</span>
+      <span className="lane-to">to</span>
+      <span className="lane-place">{place(parts[1])}</span>
+    </span>
+  );
+}

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { Dialog, Field, Money, MoneyList, api, useData } from '@/lib/client';
+import { Dialog, Field, LaneText, ModeTag, Money, MoneyList, api, useData } from '@/lib/client';
 
 const TABS = ['Waiting', 'Accepted', 'Rejected', 'Sent'];
 
@@ -158,7 +158,7 @@ export default function ApprovalsPage() {
                 </td>
                 <td>{i.customer}</td>
                 <td>
-                  {i.mode}: {i.lane || 'Not known'}
+                  <ModeTag mode={i.mode} /> <LaneText lane={i.lane} empty="Not known" />
                 </td>
                 <td>{i.version}</td>
                 <td className="num">

@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Chip, fmtDate, useData } from '@/lib/client';
+import { Chip, LaneText, ModeTag, fmtDate, useData } from '@/lib/client';
 
 export default function MyRequests() {
   const router = useRouter();
@@ -28,8 +28,12 @@ export default function MyRequests() {
                 <td>
                   <strong>{r.number}</strong>
                 </td>
-                <td>{r.mode}</td>
-                <td>{r.lane || 'Not given'}</td>
+                <td>
+                  <ModeTag mode={r.mode} />
+                </td>
+                <td>
+                  <LaneText lane={r.lane} empty="Not given" />
+                </td>
                 <td>{fmtDate(r.created_at)}</td>
                 <td>
                   <Chip text={r.status} />

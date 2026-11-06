@@ -3,11 +3,11 @@
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import CargoEditor, { cargoToData, emptyCargo, type CargoState } from '@/components/CargoEditor';
-import { Field, api, useData } from '@/lib/client';
+import { Field, MODE_ICONS, api, useData } from '@/lib/client';
 import { missingFor, FIELD_LABELS, type FieldKey } from '@/lib/required';
 import { MODES, type Mode } from '@/lib/weight';
 
-const ICONS: Record<Mode, string> = { Air: '✈', Sea: '⚓', Land: '\u{1F69A}', Courier: '\u{1F4E6}', 'Hand Carry': '\u{1F9F3}', Others: '⚙' };
+const ICONS = MODE_ICONS;
 
 type Form = {
   origin: string;

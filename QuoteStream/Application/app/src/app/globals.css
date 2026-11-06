@@ -1198,3 +1198,39 @@ table.t tr.focus td {
 .topbar .searchbox::placeholder {
   color: #6b7a8c;
 }
+
+.mode-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+}
+
+.mode-tag-icon {
+  font-size: 20px;
+  color: var(--accent);
+  width: auto;
+  text-align: center;
+}
+
+.lane {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  align-items: baseline;
+  gap: 4px 6px;
+}
+
+.lane-place {
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.lane-to {
+  font-weight: 400;
+  color: #9aa6b4;
+}
+
+td .btn {
+  white-space: nowrap;
+}
