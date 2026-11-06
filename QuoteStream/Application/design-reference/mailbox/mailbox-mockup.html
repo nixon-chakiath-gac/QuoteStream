@@ -1,0 +1,98 @@
+<title>Customer Mailbox Mockup</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* layout: mail client in three columns (folders, list, reading pane) under the GAC top bar and icon rail */
+:root{--bg:#f4f6f8;--card:#ffffff;--fg:#14202b;--mut:#5b6b7a;--line:#dde3e9;--accent:#0b6e8f;--accent-fg:#ffffff;--top:#0c2a3f;--top-fg:#ffffff;--good:#1b7f4b;--goodbg:#e2f4ea;--warn:#8a5a00;--warnbg:#fff1d6;--info:#1f5fa8;--infobg:#e1edfb;--grey:#4a5866;--greybg:#e9edf1;--sel:#e6f1f6;--ui:"IBM Plex Sans",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e161d;--card:#16222c;--fg:#e8eef3;--mut:#9fb0be;--line:#2a3945;--accent:#4cb6d8;--accent-fg:#06222d;--top:#08151f;--good:#5fd391;--goodbg:#143426;--warn:#f0c060;--warnbg:#3a2d10;--info:#8bbcf2;--infobg:#172b44;--grey:#b3c0cb;--greybg:#243340;--sel:#183341;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e161d;--card:#16222c;--fg:#e8eef3;--mut:#9fb0be;--line:#2a3945;--accent:#4cb6d8;--accent-fg:#06222d;--top:#08151f;--good:#5fd391;--goodbg:#143426;--warn:#f0c060;--warnbg:#3a2d10;--info:#8bbcf2;--infobg:#172b44;--grey:#b3c0cb;--greybg:#243340;--sel:#183341;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:16px/1.5 var(--ui)}
+button,input,select,textarea{font:inherit;color:inherit}
+.top{background:var(--top);color:var(--top-fg);display:flex;align-items:center;gap:16px;padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));position:sticky;top:env(safe-area-inset-top,0px);z-index:20}
+.brand{font-weight:600;display:flex;gap:10px;align-items:center}.brand i{width:26px;height:26px;border-radius:6px;background:var(--accent);display:inline-block}
+.who{margin-left:auto;display:flex;align-items:center;gap:10px}.who b{width:30px;height:30px;border-radius:50%;background:var(--accent);color:var(--accent-fg);display:grid;place-items:center;font-size:13px}
+.shell{display:flex;min-height:calc(100vh - 54px)}
+.rail{width:60px;background:var(--card);border-right:1px solid var(--line);padding:10px 8px;display:flex;flex-direction:column;gap:4px;flex:none}
+.rail span{display:grid;place-items:center;height:40px;border-radius:8px;font-family:var(--mono);font-size:13px;color:var(--mut)}
+.rail span.act{background:var(--infobg);color:var(--info)}
+main{flex:1;min-width:0;padding:20px max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px))}
+.wrap{max-width:1250px;margin:0 auto}
+h1{font-size:26px;margin:0 0 4px}.sub{color:var(--mut);margin:0 0 16px}
+.bar{display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin-bottom:14px}
+.bar label{display:block;font-size:13px;color:var(--mut);font-weight:500;margin-bottom:4px}
+select,input,textarea{padding:9px 10px;border:1px solid var(--line);border-radius:6px;background:var(--card);width:100%}
+.bar select{min-width:300px}
+.mail{display:grid;grid-template-columns:190px 330px 1fr;border:1px solid var(--line);border-radius:10px;background:var(--card);overflow:hidden;min-height:560px}
+@media(max-width:980px){.mail{grid-template-columns:1fr}.bar select{min-width:0;width:100%}}
+.fold{border-right:1px solid var(--line);padding:12px;display:flex;flex-direction:column;gap:4px;background:var(--bg)}
+.fold button{display:flex;justify-content:space-between;align-items:center;border:0;background:none;padding:9px 10px;border-radius:8px;cursor:pointer;text-align:left}
+.fold button.act{background:var(--sel);color:var(--accent);font-weight:600}
+.cnt{font-size:12px;background:var(--greybg);color:var(--grey);border-radius:999px;padding:0 8px}
+.list{border-right:1px solid var(--line);overflow:auto;max-height:640px}
+.item{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;padding:12px 14px;cursor:pointer}
+.item:hover{background:var(--greybg)}.item.act{background:var(--sel)}
+.item b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item span{display:block;color:var(--mut);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item.unread b::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--accent);margin-right:8px}
+.read{padding:20px;min-width:0;overflow:auto;max-height:640px}
+.hd{border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:14px}
+.hd h2{font-size:20px;margin:0 0 6px;text-wrap:balance}.meta{color:var(--mut);font-size:14px}
+.body{white-space:pre-wrap;font-size:15px}
+.chip{display:inline-block;padding:2px 10px;border-radius:999px;font-size:13px;font-weight:500;white-space:nowrap}
+.c-good{background:var(--goodbg);color:var(--good)}.c-warn{background:var(--warnbg);color:var(--warn)}.c-info{background:var(--infobg);color:var(--info)}.c-grey{background:var(--greybg);color:var(--grey)}
+.btn{background:var(--accent);color:var(--accent-fg);border:0;border-radius:6px;padding:9px 16px;cursor:pointer;font-weight:600}
+.btn.ghost{background:none;color:var(--accent);border:1px solid var(--accent)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.actions{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;align-items:center}
+.note{background:var(--infobg);border:1px solid var(--info);border-radius:8px;padding:10px 12px;font-size:14px;margin-top:14px}
+.tbl{width:100%;border-collapse:collapse;margin-top:12px;font-size:15px}.tbl th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--mut);text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}.tbl td{padding:8px;border-bottom:1px solid var(--line)}.tbl .n{text-align:right;font-variant-numeric:tabular-nums}
+.empty{padding:30px;color:var(--mut);text-align:center}
+.field{margin-top:10px}.field label{display:block;font-size:13px;color:var(--mut);margin-bottom:4px;font-weight:500}
+.mono{font-family:var(--mono);font-size:14px}
+.helper{margin-top:18px;border-top:1px dashed var(--line);padding-top:12px;font-size:13px;color:var(--mut)}
+</style>
+<div id="app"></div>
+<script>
+const P={
+ p07:{name:'Demo Principal 07',addr:'logistics@principal07.demo',who:'Coordinator 07'},
+ p12:{name:'Demo Principal 12',addr:'procurement@principal12.demo',who:'Coordinator 12'},
+ ncl:{name:'New Client Logistics',addr:'shipping@newclientlogistics.com',who:'Robert Vance'},
+ rt:{name:'Random Trading',addr:'alex@randomtrading.demo',who:'Alex'},
+ bde:{name:'Blue Dune Energy',addr:'procurement@bluedune.demo',who:'Fatima Al Zaabi'}};
+const T=[
+ {id:'t1',p:'p07',tag:'Complete, 3 POs',subj:'Quotation Request: 3 POs from Shanghai to Dubai',body:'Dear GAC Team,\n\nPlease provide a quotation for the following air freight shipment for Demo Principal 07 to Dubai branch:\n\nOrigin: Shanghai (SHA)\nDestination: Dubai (DXB)\nMode: Air\nIncoterm: FCA\nService: Consolidation is fine\nJob Type: Supplier to WH Destination\n\nCargo details:\n- PO-901: 200 kg, 1.4 CBM\n- PO-902: 185 kg, 1.3 CBM\n- PO-903: 200 kg, 1.5 CBM\nTotal Gross Weight: 585 kg\nTotal Volume: 4.2 CBM\n\nBest regards,\nCoordinator 07',res:'ok'},
+ {id:'t2',p:'p12',tag:'Learning loop A',subj:'Urgent Air Freight: Shanghai to Dubai',body:'Hi GAC Quotations,\n\nKindly quote air shipment from Shanghai to Dubai for Demo Principal 12:\n- Mode: Air\n- Incoterm: FCA\n- 1 PO (PO-8812): Gross Weight 450 kg, Volume 2.8 CBM\n- Service: Consolidation\n\nThanks,\nCoordinator 12',res:'ok'},
+ {id:'t3',p:'p12',tag:'Learning loop B',subj:'New shipment from Shanghai to Dubai',body:'Hi Team,\n\nAnother shipment ready for Demo Principal 12:\n- Mode: Air\n- Origin: Shanghai (SHA)\n- Destination: Dubai (DXB)\n- Incoterm: FCA\n- PO-8899: 500 kg, 3.0 CBM\n- Service: Consolidation\n\nPlease prepare the draft quotation.\n\nRegards,\nCoordinator 12',res:'ok'},
+ {id:'t4',p:'ncl',tag:'New customer, Sea',subj:'Rate enquiry for ocean freight Shanghai to Dubai',body:'Hello,\n\nWe are New Client Logistics and would like to request an ocean freight quote:\n- Origin: Shanghai (SHA)\n- Destination: Dubai (JEA)\n- Mode: Sea\n- Incoterm: FOB\n- PO-SEA-101: 1200 kg, 8.5 CBM\n- PO-SEA-102: 1500 kg, 10.0 CBM\n\nPlease note this is our first shipment with GAC.\n\nBest regards,\nRobert Vance',res:'rate'},
+ {id:'t5',p:'rt',tag:'Incomplete',subj:'Air freight quote needed',body:'Hello GAC,\n\nWe need an air freight quotation from Shanghai to Dubai for some electronic goods.\nCan you please quote your best rate?\n\nRegards,\nAlex',res:'missing',miss:['Incoterm','Total weight','Total volume']},
+ {id:'t6',p:'bde',tag:'New sample: Courier',subj:'Courier quote: spare sensors to Singapore',body:'Hi GAC,\n\nPlease quote a courier shipment for Blue Dune Energy:\n- Mode: Courier\n- Origin: Dubai (DXB)\n- Destination: Singapore (SIN)\n- Incoterm: DAP\n- 2 boxes, 30 kg total, 0.4 CBM\n\nThank you,\nFatima Al Zaabi',res:'ok'}];
+const S={p:'p07',fold:'templates',sel:null,sent:[],inbox:[],tpl:null,n:0,draft:null};
+const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+function stChip(s){const m={'Reading email':'grey','Draft ready':'info','Missing information':'warn','Quotation sent':'good'};return `<span class="chip c-${m[s]||'grey'}">${s}</span>`}
+function render(){const me=P[S.p];const tpls=T.filter(t=>t.p===S.p);const sent=S.sent.filter(m=>m.p===S.p);const inb=S.inbox.filter(m=>m.p===S.p);
+let list='',read='';
+if(S.fold==='templates'){list=tpls.map(t=>`<button class="item ${S.sel===t.id?'act':''}" data-a="pick" data-v="${t.id}"><b>${esc(t.subj)}</b><span>${t.tag}</span></button>`).join('')||'<div class="empty">No templates for this customer.</div>';
+ const t=T.find(x=>x.id===S.sel);read=t?compose(t,me):`<div class="empty">Pick a template email from ${me.name}, then press Send email. This simulates the customer writing to quotes@gac.com.</div>`}
+if(S.fold==='sent'){list=sent.map(m=>`<button class="item ${S.sel===m.id?'act':''}" data-a="pick" data-v="${m.id}"><b>${esc(m.subj)}</b><span>${m.req} ${m.status}</span></button>`).join('')||'<div class="empty">Nothing sent yet.</div>';
+ const m=sent.find(x=>x.id===S.sel);read=m?`<div class="hd"><h2>${esc(m.subj)}</h2><div class="meta">From ${esc(me.addr)} to quotes@gac.com</div><div class="actions" style="margin-top:8px"><span class="mono">${m.req}</span> ${stChip(m.status)} <span class="meta">${m.status==='Reading email'?'The AI is reading the email':'Visible in GAC Requests with source Email'}</span></div></div><div class="body">${esc(m.body)}</div>`:'<div class="empty">Choose a sent email to see its request status.</div>'}
+if(S.fold==='inbox'){list=inb.map(m=>`<button class="item ${m.unread?'unread':''} ${S.sel===m.id?'act':''}" data-a="pick" data-v="${m.id}"><b>${esc(m.subj)}</b><span>From ${m.from}</span></button>`).join('')||'<div class="empty">No messages from GAC yet.</div>';
+ const m=inb.find(x=>x.id===S.sel);if(m)m.unread=false;read=m?inboxMsg(m,me):'<div class="empty">Replies from GAC arrive here: clarification questions and quotations.</div>'}
+return `<div class="top"><div class="brand"><i></i>Quotation Portal</div><div class="who"><b>CZ</b><span>Christine Zock</span></div></div><div class="shell"><nav class="rail"><span>Rq</span><span>Ap</span><span class="act">Em</span><span>St</span></nav><main><div class="wrap"><h1>Email simulator</h1><p class="sub">A mock mailbox for the email door. Choose which customer you are, send a template email and watch the request appear in GAC.</p>
+<div class="bar"><div><label for="who">Mailbox of</label><select id="who">${Object.keys(P).map(k=>`<option value="${k}" ${k===S.p?'selected':''}>${P[k].name} (${P[k].addr})</option>`).join('')}</select></div></div>
+<div class="mail"><div class="fold"><button data-a="fold" data-v="templates" class="${S.fold==='templates'?'act':''}">Templates <span class="cnt">${tpls.length}</span></button><button data-a="fold" data-v="sent" class="${S.fold==='sent'?'act':''}">Sent <span class="cnt">${sent.length}</span></button><button data-a="fold" data-v="inbox" class="${S.fold==='inbox'?'act':''}">Inbox <span class="cnt">${inb.filter(m=>m.unread).length||inb.length}</span></button></div><div class="list">${list}</div><div class="read">${read}</div></div>
+<div class="helper">Demo helper, not part of the real app: <button class="btn ghost" data-a="simsend">Simulate GAC sending the latest quotation</button> In the real app this email arrives after the GAC user presses Send to customer.</div></div></main></div>`}
+function compose(t,me){const d=S.draft&&S.draft.id===t.id?S.draft:{subj:t.subj,body:t.body};return `<div class="hd"><h2>New email</h2><div class="meta">${t.tag}</div></div><div class="field"><label>From</label><input value="${esc(me.addr)}" readonly></div><div class="field"><label>To</label><input value="quotes@gac.com" readonly></div><div class="field"><label for="m_subj">Subject</label><input id="m_subj" value="${esc(d.subj)}"></div><div class="field"><label for="m_body">Body</label><textarea id="m_body" rows="14">${esc(d.body)}</textarea></div><div class="actions"><button class="btn" data-a="send">Send email</button><button class="btn ghost" data-a="reset">Reset to template</button></div>`}
+function inboxMsg(m,me){return `<div class="hd"><h2>${esc(m.subj)}</h2><div class="meta">From ${m.from} to ${esc(me.addr)}</div></div><div class="body">${esc(m.body)}</div>${m.table?`<table class="tbl"><tr><th>Service</th><th>Unit</th><th class="n">Amount (USD)</th></tr>${m.table.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td class="n">${r[2]}</td></tr>`).join('')}<tr><td colspan="2"><b>Total USD</b></td><td class="n"><b>${m.total}</b></td></tr></table><div class="note">The customer never sees cost, margin or price source in this email.</div>`:''}${m.kind==='ask'?`<div class="field"><label for="rep">Reply with the missing details</label><textarea id="rep" rows="3" placeholder="For example: FOB, 320 kg, 1.8 cbm"></textarea></div><div class="actions"><button class="btn" data-a="reply" data-v="${m.id}">Send reply</button></div>`:''}${m.replied?'<div class="note">Reply sent. The request is now complete and a draft was created.</div>':''}`}
+const D={
+fold(v){S.fold=v;S.sel=null},pick(v){S.sel=v;if(S.fold==='templates')S.draft=null},reset(){S.draft=null},
+send(){const t=T.find(x=>x.id===S.sel);if(!t)return;const subj=document.getElementById('m_subj').value;const body=document.getElementById('m_body').value;const id='s'+(++S.n);const req='REQ-'+String(7+S.n).padStart(4,'0');const m={id,p:S.p,subj,body,req,status:'Reading email',t};S.sent.unshift(m);S.fold='sent';S.sel=id;
+ setTimeout(()=>{m.status=t.res==='missing'?'Missing information':'Draft ready';if(t.res==='missing')S.inbox.unshift({id:'i'+(++S.n),p:S.p,from:'GAC Quotations',subj:'Re: '+subj+' (we need a few details)',unread:true,kind:'ask',reqm:m,body:`Dear ${P[S.p].who},\n\nThank you for your request ${req}. To prepare your quotation we still need:\n\n${t.miss.map(x=>'- '+x).join('\n')}\n\nPlease reply with these details.\n\nKind regards,\nGAC Quotations`});draw()},1400)},
+reply(v){const m=S.inbox.find(x=>x.id===v);const txt=document.getElementById('rep').value.trim();if(txt.length<4)return;m.replied=true;m.reqm.status='Draft ready';m.kind='done';S.sent.unshift({id:'s'+(++S.n),p:S.p,subj:'Re: '+m.reqm.subj,body:txt,req:m.reqm.req,status:'Draft ready'})},
+simsend(){const last=S.sent.find(x=>x.p===S.p&&x.status==='Draft ready'&&!x.quoted);if(!last){S.fold='sent';return}last.quoted=true;last.status='Quotation sent';S.inbox.unshift({id:'i'+(++S.n),p:S.p,from:'GAC Quotations',subj:'Quotation '+last.req.replace('REQ','QT')+', '+(last.t?last.t.subj.replace(/^.*?:\s*/,''):'your request'),unread:true,kind:'quote',body:`Dear ${P[S.p].who},\n\nThank you for your request. Please find our quotation below. It is valid for 30 days.\n\nKind regards,\nChristine Zock\nGAC`,table:[['Origin Charges','per kg','84.00'],['Airfreight','per kg','2,170.00'],['Fuel Surcharge','per kg','315.00'],['Security Surcharge','per kg','70.00'],['Export Customs','per shipment','85.00'],['Import Customs','per shipment','120.00'],['Transportation','per shipment','150.00']],total:'2,994.00'});S.fold='inbox';S.sel=S.inbox[0].id}};
+document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b)return;D[b.dataset.a](b.dataset.v);draw()});
+document.addEventListener('change',e=>{if(e.target.id==='who'){S.p=e.target.value;S.sel=null;S.fold='templates';draw()}});
+document.addEventListener('input',e=>{if(e.target.id==='m_subj'||e.target.id==='m_body'){const t=S.sel;S.draft={id:t,subj:document.getElementById('m_subj').value,body:document.getElementById('m_body').value}}});
+function draw(){const a=document.activeElement,id=a&&a.id,pos=a&&a.selectionStart;document.getElementById('app').innerHTML=render();if(id){const e=document.getElementById(id);if(e){e.focus();try{e.setSelectionRange(pos,pos)}catch(_){}}}}
+draw();
+</script>

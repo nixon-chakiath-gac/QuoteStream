@@ -22,3 +22,7 @@
 ## Final state
 
 Docker stack runs (db, llm-gateway, app). Unit tests: 17 app, 32 gateway. E2E: portal 41, modes 19, hero 17, samples 17, all passing. Data is reset to the clean seed.
+
+## Mailbox (2026-11-06)
+
+Email simulator rebuilt as a customer mailbox (Templates, Sent, Inbox) with GET /api/gac/mailbox, clarification emails and quotation emails. Four new samples. Unit tests: 17 app, 38 gateway. E2E: 125 checks passing from a clean reset (new section: npm run e2e mailbox). Browser click through of the mailbox not run (skipped on request).
