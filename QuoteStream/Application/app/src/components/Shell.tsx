@@ -30,7 +30,16 @@ export default function Shell({ role, children }: { role: Role; children: ReactN
   return (
     <>
       <header className="topbar">
-        <div className="brand">Quotation Portal</div>
+        <Link href="/" className="brand" aria-label="QuoteStream">
+          <img className="brand-logo" src="/gac-logo.png" alt="GAC" />
+          <span className="brand-divider" />
+          <span className="brand-text">
+            <span className="brand-name">
+              <span className="b1">Quote</span><span className="b2">Stream</span>
+            </span>
+            <span className="brand-tag">Capture | Automate | Quote | Move forward</span>
+          </span>
+        </Link>
         {role === 'gac' && <input className="searchbox" placeholder="Search requests" aria-label="Search requests" />}
         <div className="spacer" />
         <button className="avatar-btn" aria-label="Notifications" title="Notifications">

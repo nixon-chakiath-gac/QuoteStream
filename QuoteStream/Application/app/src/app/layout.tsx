@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { getRole } from '@/lib/server/auth';
 import Shell from '@/components/Shell';
 
-export const metadata = { title: 'Quotation Portal' };
+export const metadata = { title: 'QuoteStream' };
 export const dynamic = 'force-dynamic';
 
 export default async function RootLayout({ children }: { children: ReactNode }) {

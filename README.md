@@ -1,4 +1,4 @@
-# Quotation Portal and Copilot
+# QuoteStream: Quotation Portal and Copilot
 
 A quotation request system for a freight forwarder, built for the GAC AI Hackathon demo (9 November 2026).
 Customer requests arrive by email (read by Gemini) or through a portal form, and a GAC user turns them into priced, approved quotations.
