@@ -35,6 +35,8 @@ Two demo users, chosen from the top right switcher (no login): the customer Blue
 
 ## Run it
 
+All commands run from `QuoteStream/Application/app`.
+
 Requirements: Docker with Compose. Ollama is optional (the fallback reader works without it).
 
 1. Copy `.env.example` to `.env` and adjust if needed.
@@ -95,15 +97,17 @@ cd llm-gateway && npm test  gateway tests (no Ollama needed)
 ## Project layout
 
 ```
-app/
-  src/app/          pages and API routes (portal, gac, api)
-  src/components/   shared UI (shell, cargo editor, add information dialog)
-  src/lib/          pure logic (weight, money, pricing, notes, required fields) and server code
-  scripts/          init and seed, e2e
-  db/schema.sql     database schema
-  samples/          the five sample emails
-  llm-gateway/      separate AI service
-  docs/             assumptions, progress, Marlog notes
+QuoteStream/Application/
+  Final Idea/       the original brief (read only)
+  app/
+    src/app/          pages and API routes (portal, gac, api)
+    src/components/   shared UI (shell, cargo editor, add information dialog)
+    src/lib/          pure logic (weight, money, pricing, notes, required fields) and server code
+    scripts/          init and seed, e2e
+    db/schema.sql     database schema
+    samples/          the five sample emails
+    llm-gateway/      separate AI service
+    docs/             assumptions, progress, Marlog notes
 ```
 
 ## Documentation
