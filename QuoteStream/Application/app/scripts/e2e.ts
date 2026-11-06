@@ -1,5 +1,7 @@
 const BASE = process.env.BASE_URL ?? 'http://localhost:3000';
 
+const LONG_DASH = new RegExp(`[${String.fromCharCode(0x2013, 0x2014)}]`);
+
 let failures = 0;
 let passes = 0;
 
@@ -63,7 +65,7 @@ async function drive(requestId: number, quotationId: number, label: string) {
   const prev = await call('gac', 'POST', `/api/gac/quotations/${quotationId}/send-preview`, {});
   check(`${label}: send preview`, prev.status === 200 && prev.json.subject && prev.json.body, prev.json);
   check(`${label}: preview has no cost or margin words`, !/\b(cost|margin|profit|internal)\b/i.test(prev.json.body ?? ''), prev.json.body);
-  check(`${label}: preview has no dashes`, !/[–—]/.test(JSON.stringify(prev.json)));
+  check(`${label}: preview has no dashes`, !LONG_DASH.test(JSON.stringify(prev.json)));
   const sent = await call('gac', 'POST', `/api/gac/quotations/${quotationId}/send`, { subject: prev.json.subject, body: prev.json.body });
   check(`${label}: send`, sent.status === 200, sent.json);
   return prev.json;
@@ -257,12 +259,102 @@ async function samples() {
   check('05 Add Information completes and opens draft', fixed.json.complete === true && fixed.json.quotation_id, fixed.json);
 }
 
+async function mailbox(address: string) {
+  return (await call('gac', 'GET', `/api/gac/mailbox?address=${encodeURIComponent(address)}`)).json;
+}
+
+async function mailboxFlow() {
+  console.log('Email door, customer mailbox');
+  const empty = await mailbox('');
+  check('mailbox lists one entry per sample sender', empty.customers.length === 9 && empty.customers.every((c: any) => c.company && c.address), empty.customers);
+  check('customer API cannot read the mailbox', (await call('customer', 'GET', '/api/gac/mailbox')).status === 403);
+  const p12 = await mailbox('procurement@principal12.demo');
+  check('principal 12 has its two templates', p12.templates.length === 2 && p12.templates.every((t: any) => t.from === 'procurement@principal12.demo'), p12.templates);
+  const all = (await call('gac', 'GET', '/api/gac/emails')).json;
+  check('ten samples load', all.length === 10, all.length);
+  const labels = (await mailbox('logistics@principal07.demo')).templates.concat(p12.templates);
+  check('labels have no developer words', labels.every((t: any) => !/hero|loop/i.test(t.label)), labels.map((t: any) => t.label));
+  check('templates carry an expected result line', labels.every((t: any) => /^Expect: /.test(t.expect)), labels.map((t: any) => t.expect));
+
+  for (const [prefix, mode] of [['06', 'Courier'], ['07', 'Land'], ['08', 'Sea']] as const) {
+    const r = await sendSample(prefix);
+    check(`${prefix} ${mode} Draft ready`, r?.status === 'Draft ready' && r?.mode === mode, r);
+  }
+  const fcl = await mailbox('imports@harborlight.demo');
+  const fclRow = (await call('gac', 'GET', '/api/gac/requests')).json.find((x: any) => x.id === fcl.sent[0].id);
+  const fclDraft = await call('gac', 'GET', `/api/gac/quotations/${fclRow.quotation_id}?peek=1`);
+  const fd = fclDraft.json.request.data;
+  check('08 container type and count read', fd.load_type === 'FCL' && fd.container_type === '40 ft standard' && fd.container_count === 2, fd);
+  const ai = fcl.sent[0].ai;
+  check('sent item shows who answered, the duration, and the reason when the rule reader answered', Boolean(ai && typeof ai.seconds === 'number' && (ai.provider === 'rules' ? ai.fallback_used && ai.reason : ai.model)), ai);
+
+  const sl = await sendSample('10');
+  const slMissing: string[] = sl?.missing ?? [];
+  check('10 stocklist reaches Missing information without guessing', sl?.status === 'Missing information' && ['Origin', 'Incoterm', 'Total weight', 'Total volume'].every((x) => slMissing.includes(x)), sl);
+  if (!sl?.ai_fallback) {
+    const sld = (await call('gac', 'GET', `/api/gac/requests/${sl.id}`)).json;
+    check('10 read by the AI: mode Air, destination Istanbul (IST), only four fields missing', sld.mode === 'Air' && sld.data.destination === 'Istanbul (IST)' && slMissing.length === 4, { mode: sld.mode, destination: sld.data.destination, missing: slMissing });
+  }
+  const inc = await sendSample('05');
+  const box5 = await mailbox('alex@randomtrading.demo');
+  const s5 = box5.sent.find((x: any) => x.id === inc.id);
+  check('05 shows Missing information in Sent', s5?.status === 'Missing information', s5);
+  const ask = box5.inbox.find((m: any) => m.kind === 'clarification' && m.request_id === inc.id);
+  check('05 clarification email in Inbox', Boolean(ask) && ask.can_reply && /^Re: /.test(ask.subject), ask);
+  const askLines = (ask?.body ?? '').split('\n').filter((l: string) => l.startsWith('- '));
+  check('05 clarification lists exactly incoterm, weight, volume', JSON.stringify(askLines) === JSON.stringify(['- Incoterm', '- Total weight', '- Total volume']) && ask.body.includes(inc.number), ask?.body);
+  check('clarification has no long dashes', !LONG_DASH.test(JSON.stringify(ask)));
+  const replied = await call('gac', 'POST', `/api/gac/requests/${inc.id}/information`, { text: 'Incoterm is FCA, total weight 120 kg, volume 0.9 cbm' });
+  check('05 reply completes the request', replied.json.complete === true && replied.json.status === 'Draft ready', replied.json);
+  const box5b = await mailbox('alex@randomtrading.demo');
+  check('05 Sent now Draft ready', box5b.sent.find((x: any) => x.id === inc.id)?.status === 'Draft ready');
+  check('05 clarification can no longer be answered', box5b.inbox.find((m: any) => m.id === ask.id)?.can_reply === false);
+
+  const w = await sendSample('09');
+  check('09 missing only total weight', w?.status === 'Missing information' && JSON.stringify(w.missing) === JSON.stringify(['Total weight']), w);
+  const box9 = await mailbox('shipping@cedarpoint.demo');
+  const ask9 = box9.inbox.find((m: any) => m.request_id === w.id);
+  const ask9Lines = (ask9?.body ?? '').split('\n').filter((l: string) => l.startsWith('- '));
+  check('09 clarification asks only for the weight', JSON.stringify(ask9Lines) === JSON.stringify(['- Total weight']), ask9?.body);
+  const unclear = await call('gac', 'POST', `/api/gac/requests/${w.id}/information`, { text: 'about 300' });
+  check('09 unclear reply keeps it open', unclear.json.complete === false, unclear.json);
+  const asks9 = (await mailbox('shipping@cedarpoint.demo')).inbox.filter((m: any) => m.request_id === w.id);
+  check('09 only the newest clarification can be answered', asks9.length === 2 && asks9[0].can_reply && !asks9[1].can_reply, asks9.map((m: any) => m.can_reply));
+  const done9 = await call('gac', 'POST', `/api/gac/requests/${w.id}/information`, { text: 'Total weight 180 kg' });
+  check('09 reply with the weight completes it', done9.json.complete === true, done9.json);
+
+  const hero = await sendSample('01');
+  const subs = await Promise.all([1, 2].map(() => call('gac', 'POST', `/api/gac/quotations/${hero.quotation_id}/submit`, {})));
+  const okSubs = subs.filter((x) => x.status === 200).length;
+  check('double Submit: exactly one succeeds', okSubs === 1 && subs.every((x) => x.status === 200 || x.status === 400 || x.status === 409), subs.map((x) => x.status));
+  const [a1, a2] = await Promise.all([
+    call('gac', 'POST', `/api/gac/quotations/${hero.quotation_id}/decision`, { action: 'Accept' }),
+    call('gac', 'POST', `/api/gac/quotations/${hero.quotation_id}/decision`, { action: 'Accept' })
+  ]);
+  check('double Accept: exactly one succeeds', [a1.status, a2.status].sort().join() === '200,409', [a1.status, a2.status]);
+  const prev = await call('gac', 'POST', `/api/gac/quotations/${hero.quotation_id}/send-preview`, {});
+  const [s1, s2] = await Promise.all([
+    call('gac', 'POST', `/api/gac/quotations/${hero.quotation_id}/send`, { subject: prev.json.subject, body: prev.json.body }),
+    call('gac', 'POST', `/api/gac/quotations/${hero.quotation_id}/send`, { subject: prev.json.subject, body: prev.json.body })
+  ]);
+  check('double Send: exactly one succeeds', [s1.status, s2.status].sort().join() === '200,409', [s1.status, s2.status, s1.json, s2.json]);
+  const box7 = await mailbox('logistics@principal07.demo');
+  const qmail = box7.inbox.filter((m: any) => m.kind === 'quotation' && m.request_id === hero.id);
+  check('quotation email appears once in the Inbox', qmail.length === 1, qmail.length);
+  const qm = qmail[0];
+  check('quotation email has subject, body and 7 services', Boolean(qm && /^Quotation QT-/.test(qm.subject) && qm.body && qm.services.length === 7), qm);
+  check('quotation email total USD 2,994.00', qm?.totals.length === 1 && qm.totals[0].currency === 'USD' && qm.totals[0].amount === 2994, qm?.totals);
+  check('Inbox has no cost, margin or source keys', leaks(box7.inbox).length === 0 && !/\b(cost|margin)\b/i.test(qm?.body ?? ''), leaks(box7.inbox));
+  check('Sent shows Quotation sent', box7.sent.find((x: any) => x.id === hero.id)?.status === 'Quotation sent');
+}
+
 async function main() {
   const only = process.argv[2];
   if (!only || only === 'modes') await modes();
   if (!only || only === 'portal') await portalFlow();
   if (!only || only === 'hero') await heroEmail();
   if (!only || only === 'samples') await samples();
+  if (!only || only === 'mailbox') await mailboxFlow();
   console.log(`\n${passes} passed, ${failures} failed`);
   process.exit(failures > 0 ? 1 : 0);
 }

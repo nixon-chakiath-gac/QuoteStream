@@ -207,6 +207,12 @@ async function writeClarification(requestId: number, data: ReqData, missing: Fie
   ]);
 }
 
+export async function resumeReading() {
+  const rows = await q<{ id: number }>("SELECT id FROM request WHERE source = 'Email' AND status = 'Reading email'");
+  for (const r of rows) await processEmail(r.id).catch(() => undefined);
+  return rows.length;
+}
+
 export async function processEmail(requestId: number) {
   const req = await q1<any>('SELECT * FROM request WHERE id = ?', [requestId]);
   if (!req) return;
@@ -547,7 +553,8 @@ export async function submitQuotation(quotationId: number) {
   if (lines.length === 0) throw new FlowError('Add at least one service line');
   if (lines.some((l) => l.unit_price === null || l.price_source === 'Rate needed')) throw new FlowError('Submit is blocked while any line says Rate needed');
   const version = await nextVersionNo(quotationId);
-  await exec("UPDATE quotation SET flow_status = 'Submitted', rejection_reason = NULL WHERE id = ?", [quotationId]);
+  const claimed = await exec("UPDATE quotation SET flow_status = 'Submitted', rejection_reason = NULL WHERE id = ? AND flow_status IN ('Draft', 'Rejected')", [quotationId]);
+  if (claimed.affectedRows === 0) throw new FlowError('Already submitted', 409);
   await exec("UPDATE request SET status = 'Submitted' WHERE id = ?", [qt.request_id]);
   await exec("INSERT INTO approval (quotation_id, version_no, action) VALUES (?,?,'Submit')", [quotationId, version]);
   await addEvent(qt.request_id, 'submitted', `Version ${version} submitted for approval`);
@@ -560,13 +567,15 @@ export async function decide(quotationId: number, action: 'Accept' | 'Reject', r
   if (action === 'Reject') {
     const r = (reason ?? '').trim();
     if (!r) throw new FlowError('A reason is required to reject');
-    await exec("UPDATE quotation SET flow_status = 'Rejected', rejection_reason = ? WHERE id = ?", [r.slice(0, 250), quotationId]);
+    const rejected = await exec("UPDATE quotation SET flow_status = 'Rejected', rejection_reason = ? WHERE id = ? AND flow_status = 'Submitted'", [r.slice(0, 250), quotationId]);
+    if (rejected.affectedRows === 0) throw new FlowError('Only submitted quotations can be decided', 409);
     await exec("UPDATE request SET status = 'Rejected' WHERE id = ?", [qt.request_id]);
     await exec("INSERT INTO approval (quotation_id, version_no, action, reason) VALUES (?,?,'Reject',?)", [quotationId, version, r.slice(0, 250)]);
     await addEvent(qt.request_id, 'rejected', `Rejected: ${r}`);
     return;
   }
-  await exec("UPDATE quotation SET flow_status = 'Accepted' WHERE id = ?", [quotationId]);
+  const accepted = await exec("UPDATE quotation SET flow_status = 'Accepted' WHERE id = ? AND flow_status = 'Submitted'", [quotationId]);
+  if (accepted.affectedRows === 0) throw new FlowError('Only submitted quotations can be decided', 409);
   await exec("UPDATE request SET status = 'Accepted' WHERE id = ?", [qt.request_id]);
   await exec("INSERT INTO approval (quotation_id, version_no, action) VALUES (?,?,'Accept')", [quotationId, version]);
   await addEvent(qt.request_id, 'accepted', `Version ${version} accepted`);
@@ -665,9 +674,10 @@ GAC Quotations`);
     totals: preview.totals,
     email: { subject: finalSubject, body: finalBody, to: principal.email }
   };
+  const claimed = await exec("UPDATE quotation SET flow_status = 'Sent', valid_until = ? WHERE id = ? AND flow_status = 'Accepted'", [preview.valid_until, quotationId]);
+  if (claimed.affectedRows === 0) throw new FlowError('This quotation was already sent', 409);
   await exec('INSERT INTO quotation_version (quotation_id, request_id, version_no, snapshot, sent_at) VALUES (?,?,?,?,UTC_TIMESTAMP())', [quotationId, qt.request_id, version, JSON.stringify(snapshot)]);
   await exec("INSERT INTO outgoing_email (kind, request_id, quotation_id, version_no, to_email, subject, body, fallback_used) VALUES ('quotation',?,?,?,?,?,?,?)", [qt.request_id, quotationId, version, principal.email, finalSubject, finalBody, body.trim() ? 0 : 1]);
-  await exec("UPDATE quotation SET flow_status = 'Sent', valid_until = ? WHERE id = ?", [preview.valid_until, quotationId]);
   await exec("UPDATE request SET status = 'Sent to customer', sent_at = UTC_TIMESTAMP() WHERE id = ?", [qt.request_id]);
   await exec("UPDATE revision_request SET status = 'answered' WHERE request_id = ? AND status = 'open'", [qt.request_id]);
   await addEvent(qt.request_id, 'sent', version > 1 ? `Revised quotation version ${version} sent to the customer` : 'Quotation sent to the customer');

@@ -9,7 +9,7 @@ export function poolConfig(): mysql.PoolOptions {
     host: process.env.DB_HOST ?? '127.0.0.1',
     port: Number(process.env.DB_PORT ?? 3307),
     user: process.env.DB_USER ?? 'quote',
-    password: process.env.DB_PASSWORD ?? 'apppw_local_demo',
+    password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME ?? 'quote_portal',
     waitForConnections: true,
     connectionLimit: 10,
