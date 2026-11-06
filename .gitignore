@@ -1,0 +1,17 @@
+.env
+*.log
+node_modules/
+.next/
+out/
+build/
+dist/
+coverage/
+test-results/
+playwright-report/
+blob-report/
+*.tsbuildinfo
+Thumbs.db
+.DS_Store
+**/llm-gateway/data/
+**/llm-gateway/cache.json
+**/llm-gateway/config.json
