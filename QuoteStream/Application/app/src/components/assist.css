@@ -1,0 +1,125 @@
+.ai-tag {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+.fu-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.fu-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.fu-list li:last-child {
+  border-bottom: 0;
+}
+
+.fu-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.assist-dialog:focus {
+  outline: none;
+}
+
+.assist-dialog button:focus-visible,
+.fu-list button:focus-visible,
+.why-box button:focus-visible,
+.check-banner button:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.assist-draft {
+  background: var(--grey-soft);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+}
+
+.assist-draft pre,
+.assist-dialog .email-card pre {
+  white-space: pre-wrap;
+  font-family: inherit;
+  font-size: 16px;
+  margin: 8px 0 0;
+}
+
+.why-row td {
+  padding-top: 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.why-box {
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  background: var(--accent-soft);
+  font-size: 15px;
+  line-height: 1.5;
+  max-width: 1000px;
+}
+
+.why-box.warn {
+  background: var(--warn-soft);
+}
+
+.why-box .chip {
+  margin-left: 6px;
+}
+
+.why-box .flag {
+  display: block;
+  color: var(--muted);
+  font-size: 14px;
+  margin-top: 2px;
+}
+
+table.t tr.has-why td {
+  border-bottom: 0;
+}
+
+.check-banner {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.check-banner ul {
+  margin: 6px 0 0;
+  padding-left: 20px;
+}
+
+.check-banner .actions {
+  display: flex;
+  gap: 8px;
+}
+
+@media (max-width: 700px) {
+  .fu-list li {
+    flex-wrap: wrap;
+  }
+  .fu-main {
+    flex-basis: 100%;
+  }
+}

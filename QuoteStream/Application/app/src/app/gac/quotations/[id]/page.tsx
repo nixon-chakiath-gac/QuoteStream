@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
+import { CheckBanner, WhyBox } from '@/components/Assist';
 import CargoEditor, { cargoToData, dataToCargo, type CargoState } from '@/components/CargoEditor';
 import { Chip, Dialog, FallbackTag, Field, Money, api, fmtDateTime, useData } from '@/lib/client';
 import { BASES, BASIS_LABEL, fmt, type Basis } from '@/lib/money';
@@ -240,6 +241,11 @@ export default function DraftPage() {
   const [err, setErr] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [ignored, setIgnored] = useState(false);
+  const assistKey = d
+    ? `${d.lines.map((l: any) => `${l.id}:${l.unit_price}:${l.basis}:${l.price_source}`).join(',')}|${d.cargo.grossWeight}|${d.cargo.chargeableWeight}|${d.quotation.mode}`
+    : '';
+  const { data: assist } = useData<any>(d ? `/api/gac/quotations/${id}/assist?v=${encodeURIComponent(assistKey)}` : null);
 
   async function run(fn: () => Promise<any>) {
     setErr(null);
@@ -382,7 +388,7 @@ export default function DraftPage() {
         )}
       </div>
 
-      <div className="card">
+      <div className="card" id="cargo-and-lane">
         <div className="row between">
           <h2 style={{ margin: 0 }}>Cargo and lane</h2>
           {editable && (
@@ -457,8 +463,11 @@ export default function DraftPage() {
               </tr>
             </thead>
             <tbody>
-              {d.lines.map((l: any) => (
-                <tr key={`${l.id}-${l.unit_price}-${l.est_unit_cost}-${l.basis}`}>
+              {d.lines.map((l: any) => {
+                const w = assist?.why?.find((x: any) => x.line_id === l.id);
+                return (
+                <Fragment key={`${l.id}-${l.unit_price}-${l.est_unit_cost}-${l.basis}`}>
+                <tr className={w ? 'has-why' : undefined}>
                   <td>
                     <strong>{l.service_name}</strong>
                   </td>
@@ -536,7 +545,16 @@ export default function DraftPage() {
                     </td>
                   )}
                 </tr>
-              ))}
+                {w && (
+                  <tr className="why-row">
+                    <td colSpan={colSpan + (editable ? 1 : 0)}>
+                      <WhyBox why={w} />
+                    </td>
+                  </tr>
+                )}
+                </Fragment>
+                );
+              })}
               {d.lines.length === 0 && (
                 <tr>
                   <td colSpan={colSpan + 1} className="empty">
@@ -571,6 +589,18 @@ export default function DraftPage() {
           </div>
         ))}
       </div>
+
+      {editable && d.quotation.flow_status !== 'Submitted' && !ignored && assist?.checks?.length > 0 && (
+        <CheckBanner
+          checks={assist.checks}
+          onIgnore={() => setIgnored(true)}
+          onReviewWeight={() => {
+            setShowDetails(true);
+            document.getElementById('cargo-and-lane')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }}
+          onReviewRequest={(rid) => router.push(`/gac/requests/${rid}`)}
+        />
+      )}
 
       {editable && (
         <div className="row">

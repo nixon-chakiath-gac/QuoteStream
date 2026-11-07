@@ -13,7 +13,10 @@ import {
   applyUpdateGuard,
   validateEmailInput,
   validateEmailOutput,
-  emailSubject
+  emailSubject,
+  validateFollowUpInput,
+  validateFollowUpOutput,
+  followUpFallback
 } from './validate.js';
 import {
   extractFallback,
@@ -27,6 +30,7 @@ import {
 import * as extractPrompt from './prompts/extract.js';
 import * as updatePrompt from './prompts/update.js';
 import * as emailPrompt from './prompts/customer_email.js';
+import * as followUpPrompt from './prompts/follow_up.js';
 
 const LOG_LIMIT = 200;
 export const PROMPT_VERSION = 'p3';
@@ -171,6 +175,14 @@ export function createService(options = {}) {
       validate: (raw, input) => validateEmailOutput(raw, input),
       finalize: (value) => value,
       fallback: (input) => emailFallback(input)
+    },
+    follow_up: {
+      system: followUpPrompt.system,
+      hint: followUpPrompt.schemaHint,
+      user: followUpPrompt.user,
+      validate: (raw, input) => validateFollowUpOutput(raw, input),
+      finalize: (value) => value,
+      fallback: (input) => followUpFallback(input)
     }
   };
 
@@ -253,6 +265,11 @@ export function createService(options = {}) {
       const v = validateEmailInput(body);
       if (!v.ok) return { status: 400, json: { error: v.errors.join('; ') } };
       return { status: 200, json: await runTask('customer_email', body, specs.email) };
+    }
+    if (method === 'POST' && path === '/follow_up') {
+      const v = validateFollowUpInput(body);
+      if (!v.ok) return { status: 400, json: { error: v.errors.join('; ') } };
+      return { status: 200, json: await runTask('follow_up', v.value, specs.follow_up) };
     }
     if (method === 'POST' && path === '/warm') {
       let files = [];

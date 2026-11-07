@@ -15,6 +15,11 @@ export type DashRow = {
   cost: number;
   chargeableKg: number;
   source: DashSource;
+  sentAt: string | null;
+  lastReplyAt: string | null;
+  validUntil: string | null;
+  revisionAt: string | null;
+  revisionAnsweredAt: string | null;
 };
 
 export const ANCHOR_DATE = '2026-11-07';
@@ -29,6 +34,23 @@ export const CUSTOMERS: [string, number][] = [
   ['Desert Rail Logistics', 9],
   ['Oryx Engineering', 8]
 ];
+
+function plusDays(iso: string, n: number, cap: string): string | null {
+  const d = isoFromDay(dayNumber(iso) + n);
+  return d > cap ? null : d;
+}
+
+function followFacts(x: Omit<DashRow, 'id' | 'sentAt' | 'lastReplyAt' | 'validUntil' | 'revisionAt' | 'revisionAnsweredAt'>) {
+  const sent = x.status === 'Sent';
+  const rev = x.status === 'Revision requested';
+  return {
+    sentAt: sent || rev ? x.date : null,
+    lastReplyAt: sent ? plusDays(x.date, 1, ANCHOR_DATE) : null,
+    validUntil: sent || rev ? isoFromDay(dayNumber(x.date) + VALIDITY_DAYS) : null,
+    revisionAt: rev ? plusDays(x.date, 1, ANCHOR_DATE) ?? x.date : null,
+    revisionAnsweredAt: rev ? plusDays(x.date, 2, ANCHOR_DATE) : null
+  };
+}
 
 type ModeProfile = { weight: number; lanes: [string, string][]; revenue: [number, number]; kg: [number, number] };
 
@@ -105,6 +127,34 @@ const STATUS_WEIGHTS: [DashStatus, number][] = [
   ['Revision requested', 14]
 ];
 
+export const REPLY_DAYS: Record<string, number> = {
+  'Blue Dune Energy': 2,
+  'Al Noor Trading': 3,
+  'Gulf Petro Services': 2,
+  'Harbor Marine Supply': 4,
+  'Desert Rail Logistics': 3,
+  'Oryx Engineering': 5
+};
+
+export const CONTACT_EMAIL: Record<string, string> = {
+  'Blue Dune Energy': 'procurement@bluedune-energy.example',
+  'Al Noor Trading': 'logistics@alnoor-trading.example',
+  'Gulf Petro Services': 'shipping@gulfpetro.example',
+  'Harbor Marine Supply': 'orders@harbormarine.example',
+  'Desert Rail Logistics': 'ops@desertrail.example',
+  'Oryx Engineering': 'buying@oryx-eng.example'
+};
+
+export const VALIDITY_DAYS = 21;
+
+type Pin = { date: string; customer: string; mode: Mode; set: Partial<DashRow> };
+
+const PINS: Pin[] = [
+  { date: '2026-10-26', customer: 'Blue Dune Energy', mode: 'Sea', set: { revisionAt: '2026-11-04', revisionAnsweredAt: null } },
+  { date: '2026-10-22', customer: 'Al Noor Trading', mode: 'Air', set: { validUntil: '2026-11-08' } },
+  { date: '2026-11-04', customer: 'Gulf Petro Services', mode: 'Air', set: { lastReplyAt: null } }
+];
+
 export const STATUSES: DashStatus[] = ['Draft', 'Submitted', 'Sent', 'Revision requested'];
 
 export const CITIES: string[] = [...new Set(MODES.flatMap((m) => MODE_PROFILES[m].lanes.flat()))];
@@ -142,7 +192,7 @@ function pick<T>(r: () => number, list: [T, number][]): T {
 function build(): DashRow[] {
   const r = mulberry32(7);
   const anchor = dayNumber(ANCHOR_DATE);
-  const rows: Omit<DashRow, 'id'>[] = [];
+  const rows: Omit<DashRow, 'id' | 'sentAt' | 'lastReplyAt' | 'validUntil' | 'revisionAt' | 'revisionAnsweredAt'>[] = [];
   const modeList = MODES.map((m) => [m, MODE_PROFILES[m].weight] as [Mode, number]);
   for (let i = 0; i < 340; i++) {
     const mode = pick(r, modeList);
@@ -169,15 +219,21 @@ function build(): DashRow[] {
     mode: 'Air',
     origin: 'Shanghai',
     destination: 'Dubai',
-    date: isoFromDay(anchor - 1),
-    status: 'Draft',
+    date: isoFromDay(anchor - 4),
+    status: 'Sent',
     revenue: 2994,
     cost: 2430,
     chargeableKg: 700,
     source: 'Portal'
   });
+  const hero = rows[rows.length - 1];
   rows.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
-  return rows.map((x, i) => ({ ...x, id: 'QT-' + String(i + 1).padStart(4, '0') }));
+  return rows.map((x, i) => {
+    const row: DashRow = { ...x, ...followFacts(x), id: 'QT-' + String(i + 1).padStart(4, '0') };
+    if (x === hero) row.lastReplyAt = null;
+    const pin = PINS.find((p) => p.date === x.date && p.customer === x.customer && p.mode === x.mode && x !== hero);
+    return pin ? { ...row, ...pin.set } : row;
+  });
 }
 
 export const DASH_ROWS: DashRow[] = build();

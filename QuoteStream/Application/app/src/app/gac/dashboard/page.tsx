@@ -6,6 +6,8 @@ import { DASH_ROWS, RATE_NEEDED_LINES, type DashRow } from '@/lib/dashboard/data
 import { chipsFor, GROUP_LABEL, METRIC_LABEL, parse, type Parsed } from '@/lib/dashboard/parse';
 import { buildSql, filterRows, fmtInt, groupRows, kpis, overviewSpec, type Kpi } from '@/lib/dashboard/query';
 import { ColumnChart, DonutChart, HBarChart, LineChart } from '@/components/DashCharts';
+import NeedsFollowUp from '@/components/FollowUp';
+import { needsFollowUp } from '@/lib/dashboard/followup';
 import './dashboard.css';
 
 const EXAMPLES = [
@@ -139,6 +141,7 @@ function Overview() {
   const byMonth = groupRows(rows, { ...spec, group: 'month', metric: 'revenue' });
   const byMode = groupRows(rows, { ...spec, group: 'mode', metric: 'revenue' });
   const byCustomer = groupRows(rows, { ...spec, group: 'customer', metric: 'income' }, 6);
+  const followUps = useMemo(() => needsFollowUp(), []);
   const count = (s: DashRow['status']) => rows.filter((x) => x.status === s).length;
   return (
     <>
@@ -180,6 +183,7 @@ function Overview() {
           </ul>
         </section>
       </div>
+      <NeedsFollowUp items={followUps} />
       <section className="card dash-card">
         <h2>Latest requests</h2>
         <QuoteTable rows={rows} pageSize={8} showAllToggle={false} />

@@ -30,3 +30,9 @@ Email simulator rebuilt as a customer mailbox (Templates, Sent, Inbox) with GET 
 ## Dashboard concept (2026-11-07)
 
 New GAC landing page `/gac/dashboard`, first item in the sidebar. Overview (KPIs, revenue by month, revenue by mode, top customers by operating income, Needs attention, latest requests) and a search that a deterministic word parser (`src/lib/dashboard/parse.ts`) turns into filters, grouping, measure and period. Made up seeded data in `src/lib/dashboard/data.ts`, no database and no AI call. SVG charts in `src/components/DashCharts.tsx`. `/`, `/gac` and switching to Christine Zock now land on the dashboard. New e2e section `npm run e2e dashboard` (7 checks: landing redirects, sidebar order, customer cannot see it, no long dashes). Portal (41) and modes (19) e2e and the 17 unit tests still pass. Browser click through of overview, all example searches, shuffle, sort, Show all, no match, not recognised and phone width done with no console errors.
+
+## AI assist (2026-11-07)
+
+- Needs follow-up: dashboard card with up to 5 quotations from deterministic rules on the dashboard data, and a Follow-up draft dialog written by Gemini through the new `/follow_up` task (template fallback, cached per quotation, nothing is sent).
+- Why this price: a short explanation under every draft line from the pricing source data, with a "N% above or below median" flag over 10 percent on the same basis, and "Why no price" for Rate needed lines. GAC draft only.
+- Check this request: a warning banner above Submit for an unusual weight (Courier, Hand Carry, Air) and a possible duplicate within 24 hours, with Review and Ignore. Never blocks Submit. Demo data from `scripts/demo-assist.ts`. Existing suite after the change: 17 app unit tests, 49 AI service tests, 134 e2e checks, all passing.

@@ -109,7 +109,7 @@ Date of all entries: 2026-11-06. Please review each one. Format: what I assumed,
 
 ## Dashboard concept (added 2026-11-07)
 
-72. The dashboard data is anchored at 7 Nov 2026, so the 341 rows (340 generated with seed 7 plus the hero row QT-0340) and every figure are identical on every start. Periods such as "last 6 months" count back from that date, not from the real clock.
+72. The dashboard data is anchored at 7 Nov 2026, so the 341 rows (340 generated with seed 7 plus the hero row, now QT-0333) and every figure are identical on every start. Periods such as "last 6 months" count back from that date, not from the real clock.
 73. The change "vs previous period" on each KPI tile is a made up figure derived from the parsed filters, because the dataset covers only 12 months and the default view has no previous period to compare with.
 74. Needs attention counts come from the dashboard data (Submitted, Revision requested, Draft), not from the real requests tables. Lines showing Rate needed is a fixed 6.
 75. Following the prompt, "quotations" and "requests" alone do not switch the measure to a count; only "how many", "count" or "number" do. So "Blue Dune Energy quotations by mode" shows revenue by mode. The mockup counted these instead.
@@ -118,3 +118,13 @@ Date of all entries: 2026-11-06. Please review each one. Format: what I assumed,
 78. The app has no dark theme, so the dashboard and its charts use only the app's light CSS variables plus chart colours defined on `.dash`. They follow the variables if a dark theme is added later.
 79. The SQL shown under "Show the query it would write" is generated from the parsed filters against a hypothetical view `v_quotation_report`; it is never run.
 80. The parser has no unit test file, as requested for this task; it was checked with the example searches and edge cases in the browser and a one-off script.
+
+## AI assist (added 2026-11-07)
+
+81. The hero row in the dashboard data is now Sent on 3 Nov 2026 (it was a Draft on 6 Nov), so it can appear in Needs follow-up. Its number moved from QT-0340 to QT-0333 and the dashboard totals moved slightly (one fewer Draft, one more Sent).
+82. Follow-up facts in the dashboard data: a Sent row counts as answered the day after it was sent, a revision counts as answered two days after the request, and validity is 21 days from the quote date. Three rows are pinned so the card always shows QT-0333 (no reply 4 days), QT-0334 (no reply 3 days), QT-0331 (revision 3 days) and QT-0329 (validity ends tomorrow). Usual reply times per customer and the contact addresses (.example) are made up.
+83. The follow-up draft is a new task `/follow_up` in the AI service with its own prompt, validator and template fallback. The draft must name the quotation and the route and end with Christine Zock and GAC; any amount, currency, cost, margin, source or median in the reply makes it fall back to the template. Successful drafts are cached by quotation number in the app and by input in the AI service. The template is also used if the AI service cannot be reached.
+84. Why this price compares a line with the Secured quotations on the same mode, lane and service, on the same basis and currency only, and needs at least 2 of them. The flag shows above 10 percent difference. In the seeded data no line is more than 10 percent off, so the flag appears after editing a price.
+85. The weight check uses chargeable weight when the mode has a weight rule (Air, Courier) and gross weight otherwise, and skips a weight of 0. The message shows the check range (Courier 1 to 70 kg); the prompt example said 2 to 60 kg, which did not match the range it gave.
+86. The duplicate check looks for another request from the same customer, same mode and same origin and destination ports (or the same lane text when ports are unknown) created in the last 24 hours, and names the closest one.
+87. `scripts/demo-assist.ts` creates the demo requests for the checks through the portal API instead of the database seed, because the duplicate check needs a request from the last 24 hours. Run it shortly before the demo.

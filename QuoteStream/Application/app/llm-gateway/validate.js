@@ -371,3 +371,64 @@ export function validateEmailOutput(raw, input) {
   if (errors.length) return { ok: false, errors, value: null };
   return { ok: true, errors: [], value: { subject: emailSubject(input), body } };
 }
+
+const FOLLOW_KINDS = ['no_reply', 'revision', 'validity'];
+
+export function validateFollowUpInput(input) {
+  const errors = [];
+  if (!input || typeof input !== 'object') return { ok: false, errors: ['body must be a JSON object'] };
+  for (const k of ['quotation_number', 'customer', 'mode', 'origin', 'destination']) {
+    if (typeof input[k] !== 'string' || !input[k].trim()) errors.push(`${k} is required`);
+  }
+  if (!FOLLOW_KINDS.includes(input.kind)) errors.push(`kind must be one of ${FOLLOW_KINDS.join(', ')}`);
+  if (errors.length) return { ok: false, errors };
+  const s = (k) => String(input[k]).trim().slice(0, 80);
+  return {
+    ok: true,
+    errors: [],
+    value: {
+      quotation_number: s('quotation_number'),
+      customer: s('customer'),
+      mode: s('mode'),
+      origin: s('origin'),
+      destination: s('destination'),
+      kind: input.kind,
+      days: Number.isFinite(Number(input.days)) ? Math.max(0, Math.round(Number(input.days))) : 0,
+      valid_until: typeof input.valid_until === 'string' ? input.valid_until.slice(0, 10) : ''
+    }
+  };
+}
+
+export function followUpSubject(input) {
+  return `Following up on ${input.quotation_number}`;
+}
+
+const FOLLOW_UP_FORBIDDEN = /\b(cost|costs|margin|margins|profit|profits|internal|source|sources|median)\b|\b(USD|EUR|AED|GBP)\b|\d[\d,]*\.\d{2}\b/i;
+
+export function validateFollowUpOutput(raw, input) {
+  if (!raw || typeof raw !== 'object' || typeof raw.body !== 'string' || !raw.body.trim()) {
+    return { ok: false, errors: ['reply must be a JSON object with a body string'], value: null };
+  }
+  const body = sanitizeDashes(raw.body.trim());
+  if (FOLLOW_UP_FORBIDDEN.test(body)) return { ok: false, fatal: true, errors: ['forbidden wording'], value: null };
+  const errors = [];
+  if (!body.includes(input.quotation_number)) errors.push(`body must mention ${input.quotation_number}`);
+  if (!body.includes(input.origin) || !body.includes(input.destination)) errors.push(`body must mention ${input.origin} to ${input.destination}`);
+  if (input.kind === 'validity' && input.valid_until && !body.includes(input.valid_until)) errors.push(`body must mention the validity date "${input.valid_until}"`);
+  if (!/Christine Zock\s*\n\s*GAC\s*$/.test(body)) errors.push('body must end with Christine Zock and GAC on their own lines');
+  if (errors.length) return { ok: false, errors, value: null };
+  return { ok: true, errors: [], value: { subject: followUpSubject(input), body } };
+}
+
+export function followUpFallback(input) {
+  const lane = `${input.origin} to ${input.destination}`;
+  const opener =
+    input.kind === 'revision'
+      ? `Thank you for your revision request on our quotation ${input.quotation_number} for ${input.mode} from ${lane}. We are reviewing it and will come back with an updated offer shortly.`
+      : `I wanted to check whether you had a chance to review our quotation ${input.quotation_number} for ${input.mode} from ${lane}.`;
+  const validity = input.kind === 'validity' && input.valid_until ? ` Please note that the quotation is valid until ${input.valid_until}.` : '';
+  return {
+    subject: followUpSubject(input),
+    body: sanitizeDashes(`Dear team,\n\n${opener}${validity} We are happy to adjust the rate or the timing if that helps.\n\nKind regards,\nChristine Zock\nGAC`)
+  };
+}
