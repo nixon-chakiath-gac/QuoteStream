@@ -348,8 +348,31 @@ async function mailboxFlow() {
   check('Sent shows Quotation sent', box7.sent.find((x: any) => x.id === hero.id)?.status === 'Quotation sent');
 }
 
+async function page(role: 'customer' | 'gac', path: string) {
+  const res = await fetch(BASE + path, { headers: { cookie: `role=${role}` }, redirect: 'manual' });
+  return { status: res.status, location: res.headers.get('location') ?? '', html: res.status === 200 ? await res.text() : '' };
+}
+
+async function dashboard() {
+  console.log('Dashboard and sidebar');
+  const root = await page('gac', '/');
+  check('GAC lands on /gac/dashboard from /', root.location.endsWith('/gac/dashboard'), root);
+  const gacHome = await page('gac', '/gac');
+  check('GAC lands on /gac/dashboard from /gac', gacHome.location.endsWith('/gac/dashboard'), gacHome.location);
+  const d = await page('gac', '/gac/dashboard');
+  check('dashboard page renders', d.status === 200 && d.html.includes('Concept preview'), d.status);
+  const nav = ['/gac/dashboard', '/gac/requests', '/gac/approvals', '/gac/email', '/gac/settings'].map((h) => d.html.indexOf(`href="${h}"`));
+  check('sidebar lists Dashboard first, then Requests, Approvals, Email simulator, Settings', nav.every((i, k) => i > 0 && (k === 0 || i > nav[k - 1])), nav);
+  check('dashboard has no long dashes', !LONG_DASH.test(d.html.replace(/<script[\s\S]*?<\/script>/g, '')));
+  const cust = await page('customer', '/gac/dashboard');
+  check('customer is sent away from /gac/dashboard', cust.location.endsWith('/portal/request'), cust.location);
+  const portal = await page('customer', '/portal/request');
+  check('customer view has no Dashboard link', portal.status === 200 && !portal.html.includes('/gac/dashboard'));
+}
+
 async function main() {
   const only = process.argv[2];
+  if (!only || only === 'dashboard') await dashboard();
   if (!only || only === 'modes') await modes();
   if (!only || only === 'portal') await portalFlow();
   if (!only || only === 'hero') await heroEmail();

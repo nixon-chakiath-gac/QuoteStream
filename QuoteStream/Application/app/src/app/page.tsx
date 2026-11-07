@@ -5,5 +5,5 @@ export const dynamic = 'force-dynamic';
 
 export default async function Home() {
   const role = await getRole();
-  redirect(role === 'gac' ? '/gac/requests' : '/portal/request');
+  redirect(role === 'gac' ? '/gac/dashboard' : '/portal/request');
 }

@@ -26,3 +26,7 @@ Docker stack runs (db, llm-gateway, app). Unit tests: 17 app, 32 gateway. E2E: p
 ## Mailbox (2026-11-06)
 
 Email simulator rebuilt as a customer mailbox (Templates, Sent, Inbox) with GET /api/gac/mailbox, clarification emails and quotation emails. Four new samples. Unit tests: 17 app, 38 gateway. E2E: 125 checks passing from a clean reset (new section: npm run e2e mailbox). Browser click through of the mailbox not run (skipped on request).
+
+## Dashboard concept (2026-11-07)
+
+New GAC landing page `/gac/dashboard`, first item in the sidebar. Overview (KPIs, revenue by month, revenue by mode, top customers by operating income, Needs attention, latest requests) and a search that a deterministic word parser (`src/lib/dashboard/parse.ts`) turns into filters, grouping, measure and period. Made up seeded data in `src/lib/dashboard/data.ts`, no database and no AI call. SVG charts in `src/components/DashCharts.tsx`. `/`, `/gac` and switching to Christine Zock now land on the dashboard. New e2e section `npm run e2e dashboard` (7 checks: landing redirects, sidebar order, customer cannot see it, no long dashes). Portal (41) and modes (19) e2e and the 17 unit tests still pass. Browser click through of overview, all example searches, shuffle, sort, Show all, no match, not recognised and phone width done with no console errors.

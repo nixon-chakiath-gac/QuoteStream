@@ -106,3 +106,15 @@ Date of all entries: 2026-11-06. Please review each one. Format: what I assumed,
 69. The demo sends made up email text to Google's Gemini API. All sample data is invented. Sample 04 keeps its original `newclientlogistics.com` address and the name Robert Vance because the brief asks for that file verbatim; both are invented but the domain is a real looking `.com`.
 70. New sample `10_stocklist_dispatch_istanbul.txt`: a made up shipping agent (Tulip Harbor Agency, tulipharbor.demo) asks to dispatch stocklist orders to a made up consignee in Istanbul, with a vessel ETA at Mersin, "Destination airport should be IST airport", a placeholder phone number and a deadline. Gemini returns mode Air, destination Istanbul (IST), missing origin, incoterm, total weight and total volume. The rule reader does not understand this email and leaves mode and destination empty rather than guessing.
 71. Istanbul is not in the seeded port list, so that request keeps the destination text without a port id. Pricing data was not changed.
+
+## Dashboard concept (added 2026-11-07)
+
+72. The dashboard data is anchored at 7 Nov 2026, so the 341 rows (340 generated with seed 7 plus the hero row QT-0340) and every figure are identical on every start. Periods such as "last 6 months" count back from that date, not from the real clock.
+73. The change "vs previous period" on each KPI tile is a made up figure derived from the parsed filters, because the dataset covers only 12 months and the default view has no previous period to compare with.
+74. Needs attention counts come from the dashboard data (Submitted, Revision requested, Draft), not from the real requests tables. Lines showing Rate needed is a fixed 6.
+75. Following the prompt, "quotations" and "requests" alone do not switch the measure to a count; only "how many", "count" or "number" do. So "Blue Dune Energy quotations by mode" shows revenue by mode. The mockup counted these instead.
+76. "email vs portal" groups by source and applies no source filter. The mockup filtered to Email first, which left a single bar.
+77. "Al" alone does not match Al Noor Trading (it would match too many sentences); "al noor" or the full name does.
+78. The app has no dark theme, so the dashboard and its charts use only the app's light CSS variables plus chart colours defined on `.dash`. They follow the variables if a dark theme is added later.
+79. The SQL shown under "Show the query it would write" is generated from the parsed filters against a hypothetical view `v_quotation_report`; it is never run.
+80. The parser has no unit test file, as requested for this task; it was checked with the example searches and edge cases in the browser and a one-off script.

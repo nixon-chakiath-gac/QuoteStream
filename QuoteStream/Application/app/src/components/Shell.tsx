@@ -8,6 +8,7 @@ import { api } from '@/lib/client';
 type Role = 'customer' | 'gac';
 
 const NAV = [
+  { href: '/gac/dashboard', label: 'Dashboard', icon: '▦' },
   { href: '/gac/requests', label: 'Requests', icon: '☰' },
   { href: '/gac/approvals', label: 'Approvals', icon: '✓' },
   { href: '/gac/email', label: 'Email simulator', icon: '✉' },
@@ -21,7 +22,7 @@ export default function Shell({ role, children }: { role: Role; children: ReactN
 
   async function switchTo(r: Role) {
     await api('/api/role', { body: { role: r } });
-    window.location.href = r === 'gac' ? '/gac/requests' : '/portal/request';
+    window.location.href = r === 'gac' ? '/gac/dashboard' : '/portal/request';
   }
 
   const name = role === 'gac' ? 'Christine Zock' : 'Blue Dune Energy';

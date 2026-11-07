@@ -81,7 +81,7 @@ npm run e2e                 API level run of the demo story (the app must be run
 cd llm-gateway && npm test  gateway tests (the provider is mocked, no key needed)
 ```
 
-Without Node on your machine, run them in the container, for example `docker compose exec -T app npm test` and `docker compose exec -T app npx tsx scripts/e2e.ts`. `scripts/e2e.ts` accepts a scenario name: `portal`, `modes`, `hero`, `samples` or `mailbox`.
+Without Node on your machine, run them in the container, for example `docker compose exec -T app npm test` and `docker compose exec -T app npx tsx scripts/e2e.ts`. `scripts/e2e.ts` accepts a scenario name: `dashboard`, `portal`, `modes`, `hero`, `samples` or `mailbox`.
 
 ## Documentation
 
