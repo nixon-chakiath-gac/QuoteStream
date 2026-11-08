@@ -7,6 +7,7 @@ import { chipsFor, GROUP_LABEL, METRIC_LABEL, parse, type Parsed } from '@/lib/d
 import { buildSql, filterRows, fmtInt, groupRows, kpis, overviewSpec, type Kpi } from '@/lib/dashboard/query';
 import { ColumnChart, DonutChart, HBarChart, LineChart } from '@/components/DashCharts';
 import NeedsFollowUp from '@/components/FollowUp';
+import GridAssist from '@/components/GridAssist';
 import { needsFollowUp } from '@/lib/dashboard/followup';
 import './dashboard.css';
 
@@ -184,10 +185,7 @@ function Overview() {
         </section>
       </div>
       <NeedsFollowUp items={followUps} />
-      <section className="card dash-card">
-        <h2>Latest requests</h2>
-        <QuoteTable rows={rows} pageSize={8} showAllToggle={false} />
-      </section>
+      <GridAssist title="Latest requests" rows={rows} />
     </>
   );
 }
